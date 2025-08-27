@@ -1,0 +1,277 @@
+
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>照顧計畫敘述產生器 CarePlan Generator</title>
+  <style>
+    body { font-family: system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,"Noto Sans","Apple Color Emoji","Segoe UI Emoji"; margin: 0; background: #f8fafc;}
+    .container { max-width: 1100px; margin: 0 auto; padding: 24px;}
+    h1 { font-size: 24px; margin: 0 0 12px; }
+    p.lead { color:#475569; margin: 0 0 16px;}
+    .grid { display: grid; grid-template-columns: 1fr; gap: 16px; }
+    @media(min-width: 900px){ .grid{ grid-template-columns: 1fr 1fr; } }
+    .card { background: white; border: 1px solid #e2e8f0; border-radius: 14px; box-shadow: 0 1px 0 rgba(0,0,0,0.03); }
+    .card h2 { font-size: 18px; padding: 16px 16px 0; margin: 0;}
+    .card .body { padding: 16px; }
+    .row { margin-bottom: 12px; }
+    label.block { display:block; font-size: 14px; color:#334155; margin-bottom: 6px; }
+    input[type="date"], select, textarea { width: 100%; padding: 10px 12px; border-radius: 10px; border:1px solid #cbd5e1; background:#fff; box-sizing: border-box;}
+    textarea { min-height: 220px; font-size: 15px; }
+    .chips { display:flex; gap:8px; flex-wrap: wrap; }
+    .chip { display:inline-flex; align-items:center; gap:8px; border:1px solid #cbd5e1; background:#f8fafc; padding:8px 10px; border-radius:12px; cursor:pointer; user-select:none; }
+    .chip input { transform: scale(1.1); }
+    .seg { display:flex; gap:8px; flex-wrap: wrap; }
+    .seg input { display:none; }
+    .seg label { border:1px solid #cbd5e1; padding:8px 12px; border-radius:12px; cursor:pointer; background:#f8fafc; }
+    .seg input:checked + label { background:#0f172a; color:white; border-color:#0f172a; }
+    .small { font-size: 12px; color:#64748b; }
+    .flex { display:flex; align-items:center; gap:10px; }
+    .btn { padding:10px 14px; border-radius:10px; border:1px solid #0f172a; background:#0f172a; color:#fff; cursor:pointer; }
+    .btn.secondary { background:#f1f5f9; color:#0f172a; border-color:#cbd5e1; }
+    .row .hint{ font-size:12px; color:#64748b; margin-top:6px;}
+    .footer-note{ font-size:12px; color:#64748b; margin-top:8px;}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>照顧計畫敘述產生器（免安裝 / 靜態網頁版）</h1>
+    <p class="lead">勾選選項 → 自動產生敘述 → 一鍵複製。日期自動轉民國年格式（例：2025-08-12 → [114/08/12]）。</p>
+
+    <div class="grid">
+      <div class="card">
+        <h2>表單輸入</h2>
+        <div class="body">
+          <div class="row">
+            <label class="block">訪視日期（西元）</label>
+            <input id="visitDate" type="date" />
+            <div class="hint">將自動顯示為民國格式，例如 2025-08-12 → [114/08/12]</div>
+          </div>
+
+          <div class="row">
+            <label class="block">受訪對象（可複選）</label>
+            <div id="parties" class="chips"></div>
+          </div>
+
+          <div class="row">
+            <label class="block">意識</label>
+            <div class="seg" id="awareness"></div>
+          </div>
+
+          <div class="row">
+            <label class="block">聽力</label>
+            <div class="seg" id="hearing"></div>
+          </div>
+
+          <div class="row">
+            <label class="block">認知功能</label>
+            <div class="seg" id="cognition"></div>
+          </div>
+
+          <div class="row">
+            <label class="block">是否能切題對談</label>
+            <div class="seg" id="onTopic"></div>
+          </div>
+
+          <div class="row">
+            <label class="block">疾病史</label>
+            <div class="flex">
+              <input id="noDisease" type="checkbox"/>
+              <label for="noDisease" class="small">無疾病史</label>
+            </div>
+            <div id="diseases" class="chips" style="margin-top:6px;"></div>
+
+            <div class="row" id="hospitalRow" style="margin-top:8px;">
+              <label class="block">追蹤醫院</label>
+              <div class="seg" id="hospitals"></div>
+            </div>
+          </div>
+
+          <div class="row">
+            <label class="block">步態</label>
+            <div class="seg" id="gait"></div>
+          </div>
+
+          <div class="row">
+            <label class="block">是否使用輔具</label>
+            <div class="flex">
+              <input id="useAid" type="checkbox"/>
+              <label for="useAid" class="small"><span id="useAidLabel">未使用</span></label>
+            </div>
+            <div id="aids" class="chips" style="margin-top:6px; display:none;"></div>
+          </div>
+
+          <div class="row">
+            <label class="block">日常生活自理程度</label>
+            <div class="seg" id="adl"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2 style="display:flex;justify-content:space-between;align-items:center;padding-right:16px;">
+          <span>自動產生敘述</span>
+          <button id="copyBtn" class="btn">複製文字</button>
+        </h2>
+        <div class="body">
+          <textarea id="output" readonly></textarea>
+          <div class="footer-note">可直接貼到照顧計畫。若需要多段範本（生活史、家庭支持、風險評估、服務計畫等），可沿用此結構擴充。</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ===== 常數選項 =====
+    const VISIT_PARTIES = ["個案","案長女","案次女"];
+    const AWARENESS = ["清楚","模糊"];
+    const HEARING   = ["正常","右耳重聽","左耳重聽","雙耳重聽"];
+    const COGNITION = ["正常","欠佳"];
+    const ON_TOPIC  = ["能夠","無法"];
+    const DISEASES  = ["高血壓","糖尿病","中風"];
+    const HOSPITALS = ["汐止國泰","內湖三總","忠孝醫院"];
+    const GAIT      = ["穩健","不穩"];
+    const WALK_AID  = ["助行器","拐杖","輪椅"];
+    const ADL_LEVEL = ["可自理","部分需協助（如廁/沐浴）","完全無法自理"];
+
+    // ===== 工具 =====
+    function toROC(dateStr){
+      if(!dateStr) return "[____/__/__]";
+      const d = new Date(dateStr);
+      if(isNaN(d)) return "[____/__/__]";
+      const y = d.getFullYear() - 1911;
+      const m = String(d.getMonth()+1).padStart(2,"0");
+      const day = String(d.getDate()).padStart(2,"0");
+      return `[${y}/${m}/${day}]`;
+    }
+
+    // ===== 動態 UI 建立 =====
+    function renderChips(containerId, list, stateArr){
+      const box = document.getElementById(containerId);
+      box.innerHTML = "";
+      list.forEach(txt => {
+        const label = document.createElement("label");
+        label.className = "chip";
+        const input = document.createElement("input");
+        input.type = "checkbox";
+        input.checked = stateArr.has(txt);
+        input.addEventListener("change", () => {
+          if(input.checked) stateArr.add(txt); else stateArr.delete(txt);
+          update();
+        });
+        label.appendChild(input);
+        label.appendChild(document.createTextNode(txt));
+        box.appendChild(label);
+      });
+    }
+
+    function renderSegment(containerId, list, state){
+      const box = document.getElementById(containerId);
+      box.innerHTML = "";
+      list.forEach(txt => {
+        const id = containerId+"-"+txt;
+        const input = document.createElement("input");
+        input.type = "radio"; input.name = containerId; input.id = id;
+        input.checked = (state.value===txt);
+        input.addEventListener("change", () => { state.value = txt; update(); });
+        const label = document.createElement("label");
+        label.htmlFor = id; label.textContent = txt;
+        box.appendChild(input); box.appendChild(label);
+      });
+    }
+
+    // ===== 狀態 =====
+    const state = {
+      visitDate: "",
+      parties: new Set(["個案"]),
+      awareness: {value:"清楚"},
+      hearing:   {value:"正常"},
+      cognition: {value:"正常"},
+      onTopic:   {value:"能夠"},
+      noDisease: false,
+      diseases:  new Set(),
+      hospital:  {value:"汐止國泰"},
+      gait:      {value:"穩健"},
+      useAid:    false,
+      aids:      new Set(),
+      adl:       {value:"可自理"},
+    };
+
+    // ===== 初始化 UI =====
+    document.getElementById("visitDate").addEventListener("input", e => { state.visitDate = e.target.value; update(); });
+
+    renderChips("parties", VISIT_PARTIES, state.parties);
+    renderSegment("awareness", AWARENESS, state.awareness);
+    renderSegment("hearing", HEARING, state.hearing);
+    renderSegment("cognition", COGNITION, state.cognition);
+    renderSegment("onTopic", ON_TOPIC, state.onTopic);
+    renderChips("diseases", DISEASES, state.diseases);
+    renderSegment("hospitals", HOSPITALS, state.hospital);
+    renderSegment("gait", GAIT, state.gait);
+    renderChips("aids", WALK_AID, state.aids);
+    renderSegment("adl", ADL_LEVEL, state.adl);
+
+    document.getElementById("noDisease").addEventListener("change", e => {
+      state.noDisease = e.target.checked;
+      document.getElementById("diseases").style.opacity = state.noDisease ? 0.4 : 1;
+      document.getElementById("diseases").style.pointerEvents = state.noDisease ? "none" : "auto";
+      document.getElementById("hospitalRow").style.display = state.noDisease ? "none" : "block";
+      if(state.noDisease) state.diseases.clear();
+      update();
+    });
+
+    document.getElementById("useAid").addEventListener("change", e => {
+      state.useAid = e.target.checked;
+      document.getElementById("useAidLabel").textContent = state.useAid ? "使用" : "未使用";
+      const aidsDiv = document.getElementById("aids");
+      aidsDiv.style.display = state.useAid ? "flex" : "none";
+      if(!state.useAid) state.aids.clear();
+      update();
+    });
+
+    document.getElementById("copyBtn").addEventListener("click", async () => {
+      const text = document.getElementById("output").value;
+      try{
+        await navigator.clipboard.writeText(text);
+        const btn = document.getElementById("copyBtn");
+        const old = btn.textContent;
+        btn.textContent = "已複製";
+        setTimeout(()=>btn.textContent=old, 1200);
+      }catch(e){
+        alert("無法複製，請手動選取文字。");
+      }
+    });
+
+    // ===== 敘述產生 =====
+    function update(){
+      const rocDate = toROC(state.visitDate);
+      const parties = (state.parties.size? Array.from(state.parties).join("、") : "個案");
+
+      // 疾病史
+      let diseasePhrase = "無疾病史";
+      if(!state.noDisease && state.diseases.size){
+        diseasePhrase = "有（" + Array.from(state.diseases).join("/ ") + "）疾病史";
+      }
+      const diseaseFinal = (diseasePhrase==="無疾病史") ? "無疾病史" : (diseasePhrase + "，規律於" + state.hospital.value + "追蹤");
+
+      // 行走輔具
+      let walkingPhrase = state.useAid
+        ? ("行走使用（" + (state.aids.size? Array.from(state.aids).join("、") : "助行器、拐杖、輪椅") + "）")
+        : "行走未使用輔具";
+
+      // ADL
+      let adlPhrase = "基本日常生活可自理";
+      if(state.adl.value==="部分需協助（如廁/沐浴）") adlPhrase = "基本日常生活部分（如廁/沐浴）需協助";
+      if(state.adl.value==="完全無法自理") adlPhrase = "基本日常生活完全無法自理";
+
+      const narrative = `於${rocDate}訪視【${parties}】，個案意識${state.awareness.value}，聽力${state.hearing.value}，認知功能${state.cognition.value}，${state.onTopic.value}切題對談，${diseaseFinal}；步態${state.gait.value}，${walkingPhrase}；${adlPhrase}。`;
+
+      document.getElementById("output").value = narrative;
+    }
+
+    // 初始一次
+    update();
+  </script>
+</body>
+</html>
