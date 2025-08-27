@@ -4,138 +4,261 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>照顧計畫敘述產生器 CarePlan Generator</title>
+  <title>照顧計畫敘述產生器（多段落 / 可編輯 / 靜態版）</title>
   <style>
-    body { font-family: system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,"Noto Sans","Apple Color Emoji","Segoe UI Emoji"; margin: 0; background: #f8fafc;}
-    .container { max-width: 1100px; margin: 0 auto; padding: 24px;}
+    :root{ --ink:#0f172a; --muted:#64748b; --line:#e2e8f0; --bg:#f8fafc; }
+    body { font-family: system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,"Noto Sans","Apple Color Emoji","Segoe UI Emoji"; margin: 0; background: var(--bg); color:#0b1220;}
+    .container { max-width: 1200px; margin: 0 auto; padding: 24px;}
     h1 { font-size: 24px; margin: 0 0 12px; }
     p.lead { color:#475569; margin: 0 0 16px;}
-    .grid { display: grid; grid-template-columns: 1fr; gap: 16px; }
-    @media(min-width: 900px){ .grid{ grid-template-columns: 1fr 1fr; } }
-    .card { background: white; border: 1px solid #e2e8f0; border-radius: 14px; box-shadow: 0 1px 0 rgba(0,0,0,0.03); }
+    .grid { display: grid; grid-template-columns: 360px 1fr; gap: 16px; }
+    @media(max-width: 980px){ .grid{ grid-template-columns: 1fr; } }
+    .card { background: white; border: 1px solid var(--line); border-radius: 14px; box-shadow: 0 1px 0 rgba(0,0,0,0.03); }
     .card h2 { font-size: 18px; padding: 16px 16px 0; margin: 0;}
     .card .body { padding: 16px; }
     .row { margin-bottom: 12px; }
     label.block { display:block; font-size: 14px; color:#334155; margin-bottom: 6px; }
-    input[type="date"], select, textarea { width: 100%; padding: 10px 12px; border-radius: 10px; border:1px solid #cbd5e1; background:#fff; box-sizing: border-box;}
-    textarea { min-height: 220px; font-size: 15px; }
+    input[type="date"], input[type="text"], select, textarea { width: 100%; padding: 10px 12px; border-radius: 10px; border:1px solid #cbd5e1; background:#fff; box-sizing: border-box;}
+    textarea { min-height: 120px; font-size: 15px; }
     .chips { display:flex; gap:8px; flex-wrap: wrap; }
     .chip { display:inline-flex; align-items:center; gap:8px; border:1px solid #cbd5e1; background:#f8fafc; padding:8px 10px; border-radius:12px; cursor:pointer; user-select:none; }
     .chip input { transform: scale(1.1); }
     .seg { display:flex; gap:8px; flex-wrap: wrap; }
     .seg input { display:none; }
     .seg label { border:1px solid #cbd5e1; padding:8px 12px; border-radius:12px; cursor:pointer; background:#f8fafc; }
-    .seg input:checked + label { background:#0f172a; color:white; border-color:#0f172a; }
-    .small { font-size: 12px; color:#64748b; }
+    .seg input:checked + label { background:var(--ink); color:white; border-color:var(--ink); }
+    .small { font-size: 12px; color:var(--muted); }
     .flex { display:flex; align-items:center; gap:10px; }
-    .btn { padding:10px 14px; border-radius:10px; border:1px solid #0f172a; background:#0f172a; color:#fff; cursor:pointer; }
-    .btn.secondary { background:#f1f5f9; color:#0f172a; border-color:#cbd5e1; }
-    .row .hint{ font-size:12px; color:#64748b; margin-top:6px;}
-    .footer-note{ font-size:12px; color:#64748b; margin-top:8px;}
+    .btn { padding:10px 14px; border-radius:10px; border:1px solid var(--ink); background:var(--ink); color:#fff; cursor:pointer; }
+    .btn.secondary { background:#f1f5f9; color:var(--ink); border-color:#cbd5e1; }
+    .btn.row { width:100%; }
+    .muted { color:var(--muted); font-size:12px; }
+    .sectitle { font-weight:600; font-size:14px; margin-top:10px; margin-bottom:6px;}
+    .section-list label { display:flex; align-items:center; gap:8px; margin:6px 0; }
+    .divider { height:1px; background:var(--line); margin:12px 0; }
+    details { border:1px solid var(--line); border-radius:12px; padding:10px 12px; background:#fff; }
+    details + details { margin-top:10px; }
+    summary { font-weight:600; cursor:pointer; outline:none; }
+    .twocol { display:grid; grid-template-columns: 1fr 1fr; gap:10px; }
+    @media(max-width:760px){ .twocol{ grid-template-columns:1fr; } }
+    textarea#output { min-height: 420px; border-radius:12px; }
   </style>
 </head>
 <body>
   <div class="container">
-    <h1>照顧計畫敘述產生器（免安裝 / 靜態網頁版）</h1>
-    <p class="lead">勾選選項 → 自動產生敘述 → 一鍵複製。日期自動轉民國年格式（例：2025-08-12 → [114/08/12]）。</p>
+    <h1>照顧計畫敘述產生器（多段落 / 可編輯）</h1>
+    <p class="lead">勾選與填寫後，按「插入/更新所選段落」產生文字。右側文字區可自由修改，完成再複製。</p>
 
     <div class="grid">
+      <!-- 左側：段落選擇 + 各段表單 -->
       <div class="card">
-        <h2>表單輸入</h2>
+        <h2>段落選擇與輸入</h2>
         <div class="body">
-          <div class="row">
-            <label class="block">訪視日期（西元）</label>
-            <input id="visitDate" type="date" />
-            <div class="hint">將自動顯示為民國格式，例如 2025-08-12 → [114/08/12]</div>
+          <div class="sectitle">要生成的段落（可複選）</div>
+          <div class="section-list">
+            <label><input type="checkbox" id="sec1" checked/> 1. 訪視摘要</label>
+            <label><input type="checkbox" id="sec2"/> 2. 需求與問題評估</label>
+            <label><input type="checkbox" id="sec3"/> 3. 照護目標</label>
+            <label><input type="checkbox" id="sec4"/> 4. 服務計畫</label>
+            <label><input type="checkbox" id="sec5"/> 5. 風險與衛教</label>
+            <label><input type="checkbox" id="sec6"/> 6. 追蹤與回訪</label>
           </div>
+          <div class="divider"></div>
 
-          <div class="row">
-            <label class="block">受訪對象（可複選）</label>
-            <div id="parties" class="chips"></div>
-          </div>
-
-          <div class="row">
-            <label class="block">意識</label>
-            <div class="seg" id="awareness"></div>
-          </div>
-
-          <div class="row">
-            <label class="block">聽力</label>
-            <div class="seg" id="hearing"></div>
-          </div>
-
-          <div class="row">
-            <label class="block">認知功能</label>
-            <div class="seg" id="cognition"></div>
-          </div>
-
-          <div class="row">
-            <label class="block">是否能切題對談</label>
-            <div class="seg" id="onTopic"></div>
-          </div>
-
-          <div class="row">
-            <label class="block">疾病史</label>
-            <div class="flex">
-              <input id="noDisease" type="checkbox"/>
-              <label for="noDisease" class="small">無疾病史</label>
+          <!-- 第1段 -->
+          <details open>
+            <summary>（第1段）訪視摘要</summary>
+            <div class="row">
+              <label class="block">訪視日期（西元）</label>
+              <input id="visitDate" type="date" />
+              <div class="muted">會自動轉民國格式，例如 2025-08-12 → [114/08/12]</div>
             </div>
-            <div id="diseases" class="chips" style="margin-top:6px;"></div>
 
-            <div class="row" id="hospitalRow" style="margin-top:8px;">
-              <label class="block">追蹤醫院</label>
-              <div class="seg" id="hospitals"></div>
+            <div class="row">
+              <label class="block">受訪對象（可複選）</label>
+              <div id="parties" class="chips"></div>
             </div>
-          </div>
 
-          <div class="row">
-            <label class="block">步態</label>
-            <div class="seg" id="gait"></div>
-          </div>
+            <div class="twocol">
+              <div class="row">
+                <label class="block">意識</label>
+                <div class="seg" id="awareness"></div>
+              </div>
 
-          <div class="row">
-            <label class="block">是否使用輔具</label>
-            <div class="flex">
-              <input id="useAid" type="checkbox"/>
-              <label for="useAid" class="small"><span id="useAidLabel">未使用</span></label>
+              <div class="row">
+                <label class="block">聽力</label>
+                <div class="seg" id="hearing"></div>
+              </div>
+
+              <div class="row">
+                <label class="block">認知功能</label>
+                <div class="seg" id="cognition"></div>
+              </div>
+
+              <div class="row">
+                <label class="block">是否能切題對談</label>
+                <div class="seg" id="onTopic"></div>
+              </div>
             </div>
-            <div id="aids" class="chips" style="margin-top:6px; display:none;"></div>
-          </div>
 
-          <div class="row">
-            <label class="block">日常生活自理程度</label>
-            <div class="seg" id="adl"></div>
-          </div>
+            <div class="row">
+              <label class="block">疾病史</label>
+              <div class="flex">
+                <input id="noDisease" type="checkbox"/>
+                <label for="noDisease" class="small">無疾病史</label>
+              </div>
+              <div id="diseases" class="chips" style="margin-top:6px;"></div>
+              <div class="row" id="hospitalRow" style="margin-top:8px;">
+                <label class="block">追蹤醫院</label>
+                <div class="seg" id="hospitals"></div>
+              </div>
+            </div>
+
+            <div class="twocol">
+              <div class="row">
+                <label class="block">步態</label>
+                <div class="seg" id="gait"></div>
+              </div>
+
+              <div class="row">
+                <label class="block">是否使用輔具</label>
+                <div class="flex">
+                  <input id="useAid" type="checkbox"/>
+                  <label for="useAid" class="small"><span id="useAidLabel">未使用</span></label>
+                </div>
+                <div id="aids" class="chips" style="margin-top:6px; display:none;"></div>
+              </div>
+            </div>
+
+            <div class="row">
+              <label class="block">日常生活自理程度</label>
+              <div class="seg" id="adl"></div>
+            </div>
+          </details>
+
+          <!-- 第2段 -->
+          <details>
+            <summary>（第2段）需求與問題評估</summary>
+            <div class="row">
+              <label class="block">勾選重點（可複選）</label>
+              <div id="needs" class="chips"></div>
+            </div>
+            <div class="row">
+              <label class="block">補充說明</label>
+              <textarea id="needsNote" placeholder="例：近期跌倒兩次，夜間如廁不便；家屬照顧壓力增加等。"></textarea>
+            </div>
+          </details>
+
+          <!-- 第3段 -->
+          <details>
+            <summary>（第3段）照護目標</summary>
+            <div class="row">
+              <label class="block">目標（可複選）</label>
+              <div id="goals" class="chips"></div>
+            </div>
+            <div class="row">
+              <label class="block">補充/量化指標</label>
+              <textarea id="goalsNote" placeholder="例：一週內學會助行器正確使用；一個月內跌倒事件為 0。"></textarea>
+            </div>
+          </details>
+
+          <!-- 第4段 -->
+          <details>
+            <summary>（第4段）服務計畫</summary>
+            <div class="row">
+              <label class="block">服務項目（可複選）</label>
+              <div id="services" class="chips"></div>
+            </div>
+            <div class="row">
+              <label class="block">時程/頻率</label>
+              <input id="serviceSched" type="text" placeholder="例：每週二四居服 2hr；每月一次護理評估"/>
+            </div>
+            <div class="row">
+              <label class="block">補充說明</label>
+              <textarea id="servicesNote" placeholder="例：同步申請輔具補助；安排交通接送門診。"></textarea>
+            </div>
+          </details>
+
+          <!-- 第5段 -->
+          <details>
+            <summary>（第5段）風險與衛教</summary>
+            <div class="row">
+              <label class="block">衛教主題（可複選）</label>
+              <div id="education" class="chips"></div>
+            </div>
+            <div class="row">
+              <label class="block">衛教重點/注意事項</label>
+              <textarea id="educationNote" placeholder="例：地面防滑、夜間照明、正確用藥與回診提醒等。"></textarea>
+            </div>
+          </details>
+
+          <!-- 第6段 -->
+          <details>
+            <summary>（第6段）追蹤與回訪</summary>
+            <div class="twocol">
+              <div class="row">
+                <label class="block">下次追蹤日期（西元）</label>
+                <input id="nextDate" type="date"/>
+              </div>
+              <div class="row">
+                <label class="block">追蹤方式</label>
+                <div class="seg" id="followType"></div>
+              </div>
+            </div>
+            <div class="row">
+              <label class="block">負責人/單位</label>
+              <input id="followOwner" type="text" placeholder="例：個管員王小華 / 中心名"/>
+            </div>
+            <div class="row">
+              <label class="block">備註</label>
+              <textarea id="followNote" placeholder="其它安排或注意事項..."></textarea>
+            </div>
+          </details>
+
+          <div class="divider"></div>
+          <button id="gen" class="btn row">插入 / 更新所選段落</button>
+          <div class="muted" style="margin-top:6px;">提示：右側文字欄可自由修改；再次按此鈕會用最新表單內容重新生成「勾選的段落」。</div>
         </div>
       </div>
 
+      <!-- 右側：可編輯輸出 -->
       <div class="card">
         <h2 style="display:flex;justify-content:space-between;align-items:center;padding-right:16px;">
-          <span>自動產生敘述</span>
-          <button id="copyBtn" class="btn">複製文字</button>
+          <span>自動產生敘述（可編輯）</span>
+          <div style="display:flex; gap:8px;">
+            <button id="clearBtn" class="btn secondary">清空</button>
+            <button id="copyBtn" class="btn">複製文字</button>
+          </div>
         </h2>
         <div class="body">
-          <textarea id="output" readonly></textarea>
-          <div class="footer-note">可直接貼到照顧計畫。若需要多段範本（生活史、家庭支持、風險評估、服務計畫等），可沿用此結構擴充。</div>
+          <textarea id="output" placeholder="按左側『插入 / 更新所選段落』會把勾選的段落插入到這裡。你可以自由編輯內容，再按上方『複製文字』。"></textarea>
+          <div class="muted">系統會以段落標籤合併文字（例如【第1段：訪視摘要】）。你也可以自行調整段落順序或加入其他文字。</div>
         </div>
       </div>
     </div>
   </div>
 
   <script>
-    // ===== 常數選項 =====
-    const VISIT_PARTIES = ["個案","案長女","案次女"];
+    // ===== 常數選項（可自由增修） =====
+    const VISIT_PARTIES = ["個案","案長女","案次女","配偶","主要照顧者"];
     const AWARENESS = ["清楚","模糊"];
     const HEARING   = ["正常","右耳重聽","左耳重聽","雙耳重聽"];
     const COGNITION = ["正常","欠佳"];
     const ON_TOPIC  = ["能夠","無法"];
-    const DISEASES  = ["高血壓","糖尿病","中風"];
+    const DISEASES  = ["高血壓","糖尿病","中風","心臟病","腎臟病"];
     const HOSPITALS = ["汐止國泰","內湖三總","忠孝醫院"];
     const GAIT      = ["穩健","不穩"];
     const WALK_AID  = ["助行器","拐杖","輪椅"];
     const ADL_LEVEL = ["可自理","部分需協助（如廁/沐浴）","完全無法自理"];
 
+    const NEEDS     = ["醫療追蹤/用藥管理","ADL/IADL 自理能力","認知/情緒","環境安全","營養/吞嚥","經濟資源","照顧負荷","交通接送","其他"];
+    const GOALS     = ["維持生活自理","改善步態穩定","提升居家安全","增加衛教遵從","強化家庭支持","改善營養狀況"];
+    const SERVICES  = ["居家服務","居家護理","居家復健","日照中心","送餐服務","交通接送","個案管理/家訪","轉介社工","申請輔具","居家環境改善"];
+    const EDU_TOPICS= ["跌倒預防","用藥安全","壓瘡預防","吞嚥與營養","運動復健","緊急應變/聯絡流程"];
+    const FOLLOW_TYPES = ["電話追蹤","到宅訪視","門診陪同"];
+
     // ===== 工具 =====
+    const $ = (id)=>document.getElementById(id);
     function toROC(dateStr){
       if(!dateStr) return "[____/__/__]";
       const d = new Date(dateStr);
@@ -145,10 +268,8 @@
       const day = String(d.getDate()).padStart(2,"0");
       return `[${y}/${m}/${day}]`;
     }
-
-    // ===== 動態 UI 建立 =====
     function renderChips(containerId, list, stateArr){
-      const box = document.getElementById(containerId);
+      const box = $(containerId);
       box.innerHTML = "";
       list.forEach(txt => {
         const label = document.createElement("label");
@@ -158,28 +279,27 @@
         input.checked = stateArr.has(txt);
         input.addEventListener("change", () => {
           if(input.checked) stateArr.add(txt); else stateArr.delete(txt);
-          update();
         });
         label.appendChild(input);
         label.appendChild(document.createTextNode(txt));
         box.appendChild(label);
       });
     }
-
     function renderSegment(containerId, list, state){
-      const box = document.getElementById(containerId);
+      const box = $(containerId);
       box.innerHTML = "";
       list.forEach(txt => {
         const id = containerId+"-"+txt;
         const input = document.createElement("input");
         input.type = "radio"; input.name = containerId; input.id = id;
         input.checked = (state.value===txt);
-        input.addEventListener("change", () => { state.value = txt; update(); });
+        input.addEventListener("change", () => { state.value = txt; });
         const label = document.createElement("label");
         label.htmlFor = id; label.textContent = txt;
         box.appendChild(input); box.appendChild(label);
       });
     }
+    function chipsToList(set){ return set.size? Array.from(set).join("、") : ""; }
 
     // ===== 狀態 =====
     const state = {
@@ -196,11 +316,25 @@
       useAid:    false,
       aids:      new Set(),
       adl:       {value:"可自理"},
+
+      needs:     new Set(),
+      needsNote: "",
+      goals:     new Set(),
+      goalsNote: "",
+      services:  new Set(),
+      serviceSched: "",
+      servicesNote:"",
+      education: new Set(),
+      educationNote:"",
+
+      nextDate: "",
+      followType:{value:"電話追蹤"},
+      followOwner:"",
+      followNote:"",
     };
 
     // ===== 初始化 UI =====
-    document.getElementById("visitDate").addEventListener("input", e => { state.visitDate = e.target.value; update(); });
-
+    $("visitDate").addEventListener("input", e => { state.visitDate = e.target.value; });
     renderChips("parties", VISIT_PARTIES, state.parties);
     renderSegment("awareness", AWARENESS, state.awareness);
     renderSegment("hearing", HEARING, state.hearing);
@@ -212,66 +346,128 @@
     renderChips("aids", WALK_AID, state.aids);
     renderSegment("adl", ADL_LEVEL, state.adl);
 
-    document.getElementById("noDisease").addEventListener("change", e => {
+    $("noDisease").addEventListener("change", e => {
       state.noDisease = e.target.checked;
-      document.getElementById("diseases").style.opacity = state.noDisease ? 0.4 : 1;
-      document.getElementById("diseases").style.pointerEvents = state.noDisease ? "none" : "auto";
-      document.getElementById("hospitalRow").style.display = state.noDisease ? "none" : "block";
+      $("diseases").style.opacity = state.noDisease ? 0.4 : 1;
+      $("diseases").style.pointerEvents = state.noDisease ? "none" : "auto";
+      $("hospitalRow").style.display = state.noDisease ? "none" : "block";
       if(state.noDisease) state.diseases.clear();
-      update();
     });
-
-    document.getElementById("useAid").addEventListener("change", e => {
+    $("useAid").addEventListener("change", e => {
       state.useAid = e.target.checked;
-      document.getElementById("useAidLabel").textContent = state.useAid ? "使用" : "未使用";
-      const aidsDiv = document.getElementById("aids");
+      $("useAidLabel").textContent = state.useAid ? "使用" : "未使用";
+      const aidsDiv = $("aids");
       aidsDiv.style.display = state.useAid ? "flex" : "none";
       if(!state.useAid) state.aids.clear();
-      update();
     });
 
-    document.getElementById("copyBtn").addEventListener("click", async () => {
-      const text = document.getElementById("output").value;
-      try{
-        await navigator.clipboard.writeText(text);
-        const btn = document.getElementById("copyBtn");
-        const old = btn.textContent;
-        btn.textContent = "已複製";
-        setTimeout(()=>btn.textContent=old, 1200);
-      }catch(e){
-        alert("無法複製，請手動選取文字。");
-      }
-    });
+    // 其它段落的 UI
+    renderChips("needs", NEEDS, state.needs);
+    $("needsNote").addEventListener("input", e=> state.needsNote = e.target.value);
 
-    // ===== 敘述產生 =====
-    function update(){
+    renderChips("goals", GOALS, state.goals);
+    $("goalsNote").addEventListener("input", e=> state.goalsNote = e.target.value);
+
+    renderChips("services", SERVICES, state.services);
+    $("serviceSched").addEventListener("input", e=> state.serviceSched = e.target.value);
+    $("servicesNote").addEventListener("input", e=> state.servicesNote = e.target.value);
+
+    renderChips("education", EDU_TOPICS, state.education);
+    $("educationNote").addEventListener("input", e=> state.educationNote = e.target.value);
+
+    renderSegment("followType", FOLLOW_TYPES, state.followType);
+    $("nextDate").addEventListener("input", e=> state.nextDate = e.target.value);
+    $("followOwner").addEventListener("input", e=> state.followOwner = e.target.value);
+    $("followNote").addEventListener("input", e=> state.followNote = e.target.value);
+
+    // ===== 段落產生器 =====
+    function genSection1(){
       const rocDate = toROC(state.visitDate);
       const parties = (state.parties.size? Array.from(state.parties).join("、") : "個案");
-
-      // 疾病史
       let diseasePhrase = "無疾病史";
       if(!state.noDisease && state.diseases.size){
         diseasePhrase = "有（" + Array.from(state.diseases).join("/ ") + "）疾病史";
       }
       const diseaseFinal = (diseasePhrase==="無疾病史") ? "無疾病史" : (diseasePhrase + "，規律於" + state.hospital.value + "追蹤");
-
-      // 行走輔具
-      let walkingPhrase = state.useAid
-        ? ("行走使用（" + (state.aids.size? Array.from(state.aids).join("、") : "助行器、拐杖、輪椅") + "）")
-        : "行走未使用輔具";
-
-      // ADL
+      let walkingPhrase = state.useAid ? ("行走使用（" + (state.aids.size? Array.from(state.aids).join("、") : "助行器、拐杖、輪椅") + "）") : "行走未使用輔具";
       let adlPhrase = "基本日常生活可自理";
       if(state.adl.value==="部分需協助（如廁/沐浴）") adlPhrase = "基本日常生活部分（如廁/沐浴）需協助";
       if(state.adl.value==="完全無法自理") adlPhrase = "基本日常生活完全無法自理";
-
       const narrative = `於${rocDate}訪視【${parties}】，個案意識${state.awareness.value}，聽力${state.hearing.value}，認知功能${state.cognition.value}，${state.onTopic.value}切題對談，${diseaseFinal}；步態${state.gait.value}，${walkingPhrase}；${adlPhrase}。`;
-
-      document.getElementById("output").value = narrative;
+      return `【第1段：訪視摘要】\n${narrative}\n`;
+    }
+    function genSection2(){
+      const list = chipsToList(state.needs);
+      const note = state.needsNote?.trim();
+      const main = list? `主要需求/問題評估：${list}。` : "主要需求/問題評估：—。";
+      const extra = note? `補充：${note}` : "";
+      return `【第2段：需求與問題評估】\n${main} ${extra}\n`;
+    }
+    function genSection3(){
+      const list = chipsToList(state.goals);
+      const note = state.goalsNote?.trim();
+      const main = list? `照護目標：${list}。` : "照護目標：—。";
+      const extra = note? `量化/補充：${note}` : "";
+      return `【第3段：照護目標】\n${main} ${extra}\n`;
+    }
+    function genSection4(){
+      const list = chipsToList(state.services);
+      const sched = state.serviceSched?.trim();
+      const note  = state.servicesNote?.trim();
+      const main = list? `服務計畫：${list}。` : "服務計畫：—。";
+      const s1 = sched? `時程/頻率：${sched}。` : "";
+      const s2 = note?  `補充：${note}` : "";
+      return `【第4段：服務計畫】\n${main} ${s1} ${s2}\n`;
+    }
+    function genSection5(){
+      const list = chipsToList(state.education);
+      const note = state.educationNote?.trim();
+      const main = list? `風險與衛教：${list}。` : "風險與衛教：—。";
+      const extra = note? `重點：${note}` : "";
+      return `【第5段：風險與衛教】\n${main} ${extra}\n`;
+    }
+    function genSection6(){
+      const dateStr = state.nextDate? toROC(state.nextDate) : "[____/__/__]";
+      const who = state.followOwner?.trim();
+      const note = state.followNote?.trim();
+      const main = `下次追蹤：${dateStr}，方式：${state.followType.value}${ who? `，負責：${who}`:""}。`;
+      const extra = note? `備註：${note}` : "";
+      return `【第6段：追蹤與回訪】\n${main} ${extra}\n`;
     }
 
-    // 初始一次
-    update();
+    const generators = {1:genSection1,2:genSection2,3:genSection3,4:genSection4,5:genSection5,6:genSection6};
+
+    function replaceSections(currentText, selected){
+      let text = currentText || "";
+      // 移除既有的相同段落
+      selected.forEach(n => {
+        const tag = `【第${n}段：`;
+        const re = new RegExp(`^${tag}[^]*?(?=^【第\\d+段：|\\Z)`, "m");
+        text = text.replace(re, "");
+      });
+      // 產出新增內容並附加到最後
+      const parts = selected.map(n => generators[n]());
+      text = (text.trim()? text.trim() + "\n\n" : "") + parts.join("\n");
+      return text.trim() + "\n";
+    }
+
+    $("gen").addEventListener("click", () => {
+      const selected = [];
+      for(let i=1;i<=6;i++){ if($("sec"+i).checked) selected.push(i); }
+      if(selected.length===0){ alert("請至少勾選一個段落。"); return; }
+      const cur = $("output").value;
+      $("output").value = replaceSections(cur, selected);
+      const ta = $("output"); ta.scrollTop = ta.scrollHeight;
+    });
+
+    $("copyBtn").addEventListener("click", async () => {
+      try{
+        await navigator.clipboard.writeText($("output").value);
+        const btn = $("copyBtn"); const old = btn.textContent;
+        btn.textContent = "已複製"; setTimeout(()=>btn.textContent=old, 1200);
+      }catch{ alert("無法複製，請手動選取文字。"); }
+    });
+    $("clearBtn").addEventListener("click", ()=>{ $("output").value=""; });
   </script>
 </body>
 </html>
