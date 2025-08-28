@@ -209,74 +209,41 @@
 
     /* ===== 段落產生器（無勾選即省略該句） ===== */
     function genSection1(){
-      var rocDate = toROC(state.visitDate);
-      var parties = state.parties.size ? Array.from(state.parties).join("、") : "個案";
+  var rocDate = toROC(state.visitDate);
+  var parties = state.parties.size ? Array.from(state.parties).join("、") : "個案";
 
-      var bits = [];
-      if(state.awareness.size) bits.push("意識：" + chipsToList(state.awareness));
-      if(state.hearing.size)   bits.push("聽力：" + chipsToList(state.hearing));
-      if(state.cognition.size) bits.push("認知功能：" + chipsToList(state.cognition));
-      if(state.onTopic.size){
-        var talk = Array.from(state.onTopic).map(function(v){ return v + "切題對談"; }).join("、");
-        bits.push(talk);
-      }
-      if(state.noDisease){
-        bits.push("無疾病史");
-      }else if(state.diseases.size){
-        var dis = chipsToList(state.diseases);
-        var hos = state.hospitals.size ? "，規律於" + chipsToList(state.hospitals) + "追蹤" : "";
-        bits.push("有" + dis + "疾病史" + hos);
-      }
-      if(state.gait.size) bits.push("步態：" + chipsToList(state.gait));
-      if(state.useAid){
-        bits.push("輔具：" + (state.aids.size ? chipsToList(state.aids) : "助行器、拐杖、輪椅"));
-      }
-      if(state.adl.size) bits.push("日常生活自理：" + chipsToList(state.adl));
+  var bits = [];
+  if(state.awareness.size) bits.push("意識" + chipsToList(state.awareness));
+  if(state.hearing.size)   bits.push("聽力" + chipsToList(state.hearing));
+  if(state.cognition.size) bits.push("認知功能" + chipsToList(state.cognition));
 
-      var sentence = "於" + rocDate + "訪視" + parties + (bits.length? "，" + bits.join("；") : "") + "。";
-      return "【第1段：訪視摘要】\n" + sentence + "\n";
-    }
-    function genSection2(){
-      var list = chipsToList(state.needs), note = (state.needsNote||"").trim();
-      var parts = [];
-      if(list) parts.push("主要需求/問題評估：" + list);
-      if(note) parts.push("補充：" + note);
-      if(!parts.length) return "【第2段：需求與問題評估】\n—\n";
-      return "【第2段：需求與問題評估】\n" + parts.join("；") + "。\n";
-    }
-    function genSection3(){
-      var list = chipsToList(state.goals), note = (state.goalsNote||"").trim();
-      var parts = [];
-      if(list) parts.push("照護目標：" + list);
-      if(note) parts.push("量化/補充：" + note);
-      if(!parts.length) return "【第3段：照護目標】\n—\n";
-      return "【第3段：照護目標】\n" + parts.join("；") + "。\n";
-    }
-    function genSection4(){
-      var list = chipsToList(state.services), sched=(state.serviceSched||"").trim(), note=(state.servicesNote||"").trim();
-      var parts = [];
-      if(list)  parts.push("服務計畫：" + list);
-      if(sched) parts.push("時程/頻率：" + sched);
-      if(note)  parts.push("補充：" + note);
-      if(!parts.length) return "【第4段：服務計畫】\n—\n";
-      return "【第4段：服務計畫】\n" + parts.join("；") + "。\n";
-    }
-    function genSection5(){
-      var list = chipsToList(state.education), note=(state.educationNote||"").trim();
-      var parts = [];
-      if(list) parts.push("風險與衛教：" + list);
-      if(note) parts.push("重點：" + note);
-      if(!parts.length) return "【第5段：風險與衛教】\n—\n";
-      return "【第5段：風險與衛教】\n" + parts.join("；") + "。\n";
-    }
-    function genSection6(){
-      var dateStr = state.nextDate ? toROC(state.nextDate) : "____/__/__";
-      var parts = ["下次追蹤：" + dateStr];
-      if(state.followType.size) parts.push("方式：" + chipsToList(state.followType));
-      var who = (state.followOwner||"").trim(); if(who) parts.push("負責：" + who);
-      var note = (state.followNote||"").trim(); if(note) parts.push("備註：" + note);
-      return "【第6段：追蹤與回訪】\n" + parts.join("，") + "。\n";
-    }
+  if(state.onTopic.size){
+    var talk = Array.from(state.onTopic)
+      .map(function(v){ return v + "切題對談"; })
+      .join("、");
+    bits.push(talk);
+  }
+
+  if(state.noDisease){
+    bits.push("無疾病史");
+  }else if(state.diseases.size){
+    var dis = chipsToList(state.diseases);
+    var hos = state.hospitals.size ? "，規律於" + chipsToList(state.hospitals) + "追蹤" : "";
+    bits.push("有" + dis + "疾病史" + hos);
+  }
+
+  if(state.gait.size) bits.push("步態" + chipsToList(state.gait));
+
+  if(state.useAid){
+    bits.push("行動需使用" + (state.aids.size ? chipsToList(state.aids) : "助行器、拐杖、輪椅"));
+  }
+
+  if(state.adl.size) bits.push("日常生活自理" + chipsToList(state.adl));
+
+  var sentence = "於" + rocDate + "訪視" + parties + (bits.length ? "，" + bits.join("；") : "") + "。";
+  return "【第1段：訪視摘要】\n" + sentence + "\n";
+}
+
 
     var generators = {1:genSection1,2:genSection2,3:genSection3,4:genSection4,5:genSection5,6:genSection6};
 
