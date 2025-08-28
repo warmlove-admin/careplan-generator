@@ -23,10 +23,6 @@
     .chips{ display:flex; gap:8px; flex-wrap:wrap; }
     .chip{ display:inline-flex; align-items:center; gap:8px; border:1px solid #cbd5e1; background:#f8fafc; padding:8px 10px; border-radius:12px; cursor:pointer; user-select:none; }
     .chip input{ transform:scale(1.1); }
-    .small{ font-size:12px; color:#64748b; }
-    .flex{ display:flex; align-items:center; gap:10px; }
-    .btn{ padding:10px 14px; border-radius:10px; border:1px solid var(--ink); background:var(--ink); color:#fff; cursor:pointer; }
-    .btn.secondary{ background:#f1f5f9; color:#0b1220; border-color:#cbd5e1; }
     .muted{ color:#64748b; font-size:12px; }
     .sectitle{ font-weight:600; font-size:14px; margin-top:10px; margin-bottom:6px; }
     .section-list label{ display:flex; align-items:center; gap:8px; margin:6px 0; }
@@ -64,6 +60,7 @@
 
           <details open>
             <summary>（第1段）訪視摘要</summary>
+
             <div class="row">
               <label class="block">訪視日期（西元）</label>
               <input id="visitDate" type="date">
@@ -71,6 +68,7 @@
             </div>
 
             <div class="row"><label class="block">受訪對象（可複選）</label><div id="parties" class="chips"></div></div>
+
             <div class="row"><label class="block">意識（複選）</label><div id="awareness" class="chips"></div></div>
             <div class="row"><label class="block">聽力（複選）</label><div id="hearing" class="chips"></div></div>
             <div class="row"><label class="block">認知功能（複選）</label><div id="cognition" class="chips"></div></div>
@@ -78,7 +76,8 @@
 
             <div class="row">
               <label class="block">疾病史</label>
-              <div class="flex"><input id="noDisease" type="checkbox"><label for="noDisease" class="small">無疾病史</label></div>
+              <div class="muted" style="margin-bottom:6px;">（勾選「無疾病史」或選擇疾病／追蹤院所；未勾選則整句省略）</div>
+              <div class="chips"><label class="chip"><input id="noDisease" type="checkbox">無疾病史</label></div>
               <div id="diseases" class="chips" style="margin-top:6px;"></div>
               <div class="row" id="hospitalRow" style="margin-top:8px;">
                 <label class="block">追蹤醫院（可複選）</label>
@@ -90,7 +89,7 @@
 
             <div class="row">
               <label class="block">是否使用輔具</label>
-              <div class="flex"><input id="useAid" type="checkbox"><label for="useAid" class="small"><span id="useAidLabel">未使用</span></label></div>
+              <div class="chips"><label class="chip"><input id="useAid" type="checkbox"><span id="useAidLabel">未使用</span></label></div>
               <div id="aids" class="chips" style="margin-top:6px; display:none;"></div>
             </div>
 
@@ -207,7 +206,7 @@
       nextDate:"", followType:new Set(), followOwner:"", followNote:""
     };
 
-    /* ===== 段落產生器（無勾選即省略該句） ===== */
+    /* ===== 段落產生器 ===== */
     function genSection1(){
       var rocDate = toROC(state.visitDate);
       var parties = state.parties.size ? Array.from(state.parties).join("、") : "個案";
@@ -218,9 +217,7 @@
       if(state.cognition.size) bits.push("認知功能" + chipsToList(state.cognition));
 
       if(state.onTopic.size){
-        var talk = Array.from(state.onTopic)
-          .map(function(v){ return v + "切題對談"; })
-          .join("、");
+        var talk = Array.from(state.onTopic).map(function(v){ return v + "切題對談"; }).join("、");
         bits.push(talk);
       }
 
@@ -235,17 +232,61 @@
       if(state.gait.size) bits.push("步態" + chipsToList(state.gait));
 
       if(state.useAid){
-       bits.push("行動需使用" + (state.aids.size ? chipsToList(state.aids) : "助行器、拐杖、輪椅"));
+        bits.push("行動需使用" + (state.aids.size ? chipsToList(state.aids) : "助行器、拐杖、輪椅"));
       }
 
       if(state.adl.size) bits.push("日常生活自理" + chipsToList(state.adl));
 
-      var sentence = "於" + rocDate + "訪視" + parties + (bits.length ? "，" + bits.join("；") : "") + "。";
+      var sentence = "於" + rocDate + "訪視" + parties + (bits.length? "，" + bits.join("；") : "") + "。";
       return "【第1段：訪視摘要】\n" + sentence + "\n";
     }
 
+    function genSection2(){
+      var list = chipsToList(state.needs), note = (state.needsNote||"").trim();
+      var parts = [];
+      if(list) parts.push("主要需求/問題評估：" + list);
+      if(note) parts.push("補充：" + note);
+      if(!parts.length) return "【第2段：需求與問題評估】\n—\n";
+      return "【第2段：需求與問題評估】\n" + parts.join("；") + "。\n";
+    }
+    function genSection3(){
+      var list = chipsToList(state.goals), note = (state.goalsNote||"").trim();
+      var parts = [];
+      if(list) parts.push("照護目標：" + list);
+      if(note) parts.push("量化/補充：" + note);
+      if(!parts.length) return "【第3段：照護目標】\n—\n";
+      return "【第3段：照護目標】\n" + parts.join("；") + "。\n";
+    }
+    function genSection4(){
+      var list = chipsToList(state.services), sched=(state.serviceSched||"").trim(), note=(state.servicesNote||"").trim();
+      var parts = [];
+      if(list)  parts.push("服務計畫：" + list);
+      if(sched) parts.push("時程/頻率：" + sched);
+      if(note)  parts.push("補充：" + note);
+      if(!parts.length) return "【第4段：服務計畫】\n—\n";
+      return "【第4段：服務計畫】\n" + parts.join("；") + "。\n";
+    }
+    function genSection5(){
+      var list = chipsToList(state.education), note=(state.educationNote||"").trim();
+      var parts = [];
+      if(list) parts.push("風險與衛教：" + list);
+      if(note) parts.push("重點：" + note);
+      if(!parts.length) return "【第5段：風險與衛教】\n—\n";
+      return "【第5段：風險與衛教】\n" + parts.join("；") + "。\n";
+    }
+    function genSection6(){
+      var dateStr = state.nextDate ? toROC(state.nextDate) : "____/__/__";
+      var parts = ["下次追蹤：" + dateStr];
+      if(state.followType.size) parts.push("方式：" + chipsToList(state.followType));
+      var who = (state.followOwner||"").trim(); if(who) parts.push("負責：" + who);
+      var note = (state.followNote||"").trim(); if(note) parts.push("備註：" + note);
+      return "【第6段：追蹤與回訪】\n" + parts.join("，") + "。\n";
+    }
+
+    /* 對照表 */
     var generators = {1:genSection1,2:genSection2,3:genSection3,4:genSection4,5:genSection5,6:genSection6};
 
+    /* ===== 段落組裝 ===== */
     function getSelectedSections(){ var arr=[]; for(var i=1;i<=6;i++){ var el=$("sec"+i); if(el && el.checked) arr.push(i);} return arr; }
     function replaceSections(currentText, selected){
       var text = currentText || "";
@@ -283,7 +324,7 @@
       renderChips("cognition",  COGNITION,     state.cognition);
       renderChips("onTopic",    ON_TOPIC,      state.onTopic);
       renderChips("diseases",   DISEASES,      state.diseases);
-      renderChips("hospitals",  HOSPITALS,     state.hospitals); // 可複選
+      renderChips("hospitals",  HOSPITALS,     state.hospitals);
       renderChips("gait",       GAIT,          state.gait);
       renderChips("aids",       WALK_AID,      state.aids);
       renderChips("adl",        ADL_LEVEL,     state.adl);
