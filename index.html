@@ -416,11 +416,20 @@ ${main} ${extra}
 
     function replaceSections(currentText, selected){
       let text = currentText || "";
+      // 把相同段落全部移除（避免重複）
       selected.forEach(n => {
         const tag = `【第${n}段：`;
-        const re = new RegExp(`^${tag}[^]*?(?=^【第\d+段：|\Z)`, "gm");
+        const re = new RegExp(`^${tag}[\s\S]*?(?=^【第\d+段：|\s*$)`, "gm");
         text = text.replace(re, "");
       });
+      const parts = selected.map(n => generators[n]());
+      text = (text.trim()? text.trim() + "
+
+" : "") + parts.join("
+");
+      return text.trim() + "
+";
+    });
       const parts = selected.map(n => generators[n]());
       text = (text.trim()? text.trim() + "
 
