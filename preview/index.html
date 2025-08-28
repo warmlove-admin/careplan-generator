@@ -2,45 +2,46 @@
 <html lang="zh-Hant">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>[PREVIEW] 照顧計畫敘述產生器</title>
   <link rel="icon" href="data:,"><!-- 避免 favicon 404 -->
   <style>
     :root{ --ink:#0f172a; --muted:#64748b; --line:#e2e8f0; --bg:#f8fafc; }
-    body{ font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,"Noto Sans","Apple Color Emoji","Segoe UI Emoji"; margin:0; background:var(--bg); color:#0b1220; }
-    .container{ max-width:1200px; margin:0 auto; padding:24px; }
-    h1{ font-size:24px; margin:0 0 12px; }
-    p.lead{ color:#475569; margin:0 0 16px; }
-    .grid{ display:grid; grid-template-columns:360px 1fr; gap:16px; }
-    @media (max-width:980px){ .grid{ grid-template-columns:1fr; } }
-    .card{ background:#fff; border:1px solid var(--line); border-radius:14px; box-shadow:0 1px 0 rgba(0,0,0,.03); }
-    .card h2{ font-size:18px; padding:16px 16px 0; margin:0; }
-    .card .body{ padding:16px; }
-    .row{ margin-bottom:12px; }
-    label.block{ display:block; font-size:14px; color:#334155; margin-bottom:6px; }
-    input[type="date"],input[type="text"],textarea{ width:100%; padding:10px 12px; border-radius:10px; border:1px solid #cbd5e1; background:#fff; box-sizing:border-box; }
-    textarea{ min-height:120px; font-size:15px; }
-    .chips{ display:flex; gap:8px; flex-wrap:wrap; }
-    .chip{ display:inline-flex; align-items:center; gap:8px; border:1px solid #cbd5e1; background:#f8fafc; padding:8px 10px; border-radius:12px; cursor:pointer; user-select:none; }
-    .chip input{ transform:scale(1.1); }
-    .muted{ color:#64748b; font-size:12px; }
-    .sectitle{ font-weight:600; font-size:14px; margin-top:10px; margin-bottom:6px; }
-    .section-list label{ display:flex; align-items:center; gap:8px; margin:6px 0; }
-    .divider{ height:1px; background:var(--line); margin:12px 0; }
-    details{ border:1px solid var(--line); border-radius:12px; padding:10px 12px; background:#fff; }
-    details + details{ margin-top:10px; }
-    summary{ font-weight:600; cursor:pointer; outline:0; }
-    .twocol{ display:grid; grid-template-columns:1fr 1fr; gap:10px; }
-    @media (max-width:760px){ .twocol{ grid-template-columns:1fr; } }
-    textarea#output{ min-height:420px; border-radius:12px; }
-    .right-sticky{ position:sticky; top:12px; align-self:start; }
-    @media (max-width:980px){ .right-sticky{ top:8px; } }
+    body { font-family: system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,"Noto Sans","Apple Color Emoji","Segoe UI Emoji"; margin: 0; background: var(--bg); color:#0b1220;}
+    .container { max-width: 1200px; margin: 0 auto; padding: 24px;}
+    h1 { font-size: 24px; margin: 0 0 12px; }
+    p.lead { color:#475569; margin: 0 0 16px;}
+    .grid { display: grid; grid-template-columns: 360px 1fr; gap: 16px; }
+    @media(max-width: 980px){ .grid{ grid-template-columns: 1fr; } }
+    .card { background: white; border: 1px solid var(--line); border-radius: 14px; box-shadow: 0 1px 0 rgba(0,0,0,0.03); }
+    .card h2 { font-size: 18px; padding: 16px 16px 0; margin: 0;}
+    .card .body { padding: 16px; }
+    .row { margin-bottom: 12px; }
+    label.block { display:block; font-size: 14px; color:#334155; margin-bottom: 6px; }
+    input[type="date"], input[type="text"], textarea { width: 100%; padding: 10px 12px; border-radius: 10px; border:1px solid #cbd5e1; background:#fff; box-sizing: border-box;}
+    textarea { min-height: 120px; font-size: 15px; }
+    .chips { display:flex; gap:8px; flex-wrap: wrap; }
+    .chip { display:inline-flex; align-items:center; gap:8px; border:1px solid #cbd5e1; background:#f8fafc; padding:8px 10px; border-radius:12px; cursor:pointer; user-select:none; }
+    .chip input { transform: scale(1.1); }
+    .muted { color:var(--muted); font-size:12px; }
+    .sectitle { font-weight:600; font-size:14px; margin-top:10px; margin-bottom:6px;}
+    .section-list label { display:flex; align-items:center; gap:8px; margin:6px 0; }
+    .divider { height:1px; background:var(--line); margin:12px 0; }
+    details { border:1px solid var(--line); border-radius:12px; padding:10px 12px; background:#fff; }
+    details + details { margin-top:10px; }
+    summary { font-weight:600; cursor:pointer; outline:none; }
+    .twocol { display:grid; grid-template-columns: 1fr 1fr; gap:10px; }
+    @media(max-width:760px){ .twocol{ grid-template-columns:1fr; } }
+    textarea#output { min-height: 420px; border-radius:12px; }
+    .right-sticky { position: sticky; top: 12px; align-self: start; }
+    @media(max-width:980px){ .right-sticky{ top: 8px; } }
+    .hint { margin-top:4px; color:#64748b; font-size:12px; }
   </style>
 </head>
 <body>
   <div class="container">
     <h1>[PREVIEW] 照顧計畫敘述產生器（多段落／可編輯）</h1>
-    <p class="lead">這是預覽頁，不會影響首頁。左側勾選或輸入會自動更新右側文字（目前：首次開啟預設產生第1段）。</p>
+    <p class="lead">此為預覽頁，不影響首頁。左側勾選或輸入會自動更新右側文字；未勾選的欄位不輸出。</p>
 
     <div class="grid">
       <!-- 左側 -->
@@ -58,6 +59,7 @@
           </div>
           <div class="divider"></div>
 
+          <!-- 第1段 -->
           <details open>
             <summary>（第1段）訪視摘要</summary>
             <div class="row">
@@ -66,7 +68,10 @@
               <div class="muted">會自動轉民國格式，例如 2025-08-12 → 114/08/12</div>
             </div>
 
-            <div class="row"><label class="block">受訪對象（可複選）</label><div id="parties" class="chips"></div></div>
+            <div class="row">
+              <label class="block">受訪對象（可複選）</label>
+              <div id="parties" class="chips"></div>
+            </div>
 
             <div class="row"><label class="block">意識（複選）</label><div id="awareness" class="chips"></div></div>
             <div class="row"><label class="block">聽力（複選）</label><div id="hearing" class="chips"></div></div>
@@ -75,12 +80,33 @@
 
             <div class="row">
               <label class="block">疾病史</label>
-              <div class="muted" style="margin-bottom:6px;">（勾「無疾病史」或選疾病/追蹤院所；未勾選則整句省略）</div>
               <div class="chips"><label class="chip"><input id="noDisease" type="checkbox">無疾病史</label></div>
               <div id="diseases" class="chips" style="margin-top:6px;"></div>
               <div class="row" id="hospitalRow" style="margin-top:8px;">
                 <label class="block">追蹤醫院（可複選）</label>
                 <div id="hospitals" class="chips"></div>
+              </div>
+            </div>
+
+            <!-- 新增：皮膚與壓瘡 -->
+            <div class="row">
+              <label class="block">皮膚完整性（複選）</label>
+              <div id="skinIntegrity" class="chips"></div>
+              <div class="hint">例：粗糙乾裂、有傷口（未勾選則省略）。</div>
+            </div>
+            <div class="row">
+              <label class="block">壓瘡</label>
+              <div class="chips"><label class="chip"><input id="hasBedsore" type="checkbox">有壓瘡</label></div>
+              <div id="bedsoreBlock" style="display:none; margin-top:6px;">
+                <div class="row" style="margin:8px 0;">
+                  <label class="block">壓瘡部位（複選）</label>
+                  <div id="bedsoreSites" class="chips"></div>
+                </div>
+                <div class="row">
+                  <label class="block">壓瘡面積</label>
+                  <input id="bedsoreArea" type="text" placeholder="輸入數字或文字（例：3x2；或 5 ）">
+                  <div class="hint">會輸出：壓瘡面積約 {值} 公分（有勾「有壓瘡」時才會顯示）。</div>
+                </div>
               </div>
             </div>
 
@@ -93,35 +119,51 @@
             </div>
 
             <div class="row"><label class="block">日常生活自理程度（複選）</label><div id="adl" class="chips"></div></div>
+
+            <!-- 第1段第二小段（同住／住所／外出／支持／主述） -->
+            <div class="divider"></div>
+            <div class="row"><label class="block">同住成員（複選）</label><div id="cohab" class="chips"></div></div>
+            <div class="row"><label class="block">住所類型（複選）</label><div id="housing" class="chips"></div></div>
+            <div class="row"><label class="block">外出能力（可複選）</label><div id="outdoor" class="chips"></div>
+              <div class="hint">對照字：獨立→可自行外出；部份協助→他人陪同下可外出；困難→外出困難；爬梯機→外出須使用爬梯機。</div>
+            </div>
+            <div class="row"><label class="block">照顧支持（複選）</label><div id="support" class="chips"></div>
+              <div class="hint">對照字：極佳→家庭關係緊密，高度支持；尚佳→照顧支持系統尚佳；薄弱→支持系統薄弱。</div>
+            </div>
+            <div class="row"><label class="block">主述需求（複選）</label><div id="demands" class="chips"></div></div>
           </details>
 
+          <!-- 第2段 -->
           <details>
             <summary>（第2段）需求與問題評估</summary>
-            <div class="row"><label class="block">勾選重點（可複選）</label><div id="needs" class="chips"></div></div>
-            <div class="row"><label class="block">補充說明</label><textarea id="needsNote" placeholder="例：近期跌倒兩次，夜間如廁不便；家屬照顧壓力增加等。"></textarea></div>
+            <div class="row">
+              <label class="block">勾選問題（可複選）</label>
+              <div id="issues" class="chips"></div>
+            </div>
+            <div class="row">
+              <label class="block">補充說明</label>
+              <textarea id="needsNote" placeholder="例：近期跌倒兩次，夜間如廁不便；家屬照顧壓力增加等。"></textarea>
+            </div>
           </details>
 
-          <details>
-            <summary>（第3段）照護目標</summary>
+          <!-- 其他段落維持原樣（先保留空殼） -->
+          <details><summary>（第3段）照護目標</summary>
             <div class="row"><label class="block">目標（可複選）</label><div id="goals" class="chips"></div></div>
             <div class="row"><label class="block">補充/量化指標</label><textarea id="goalsNote" placeholder="例：一週內學會助行器正確使用；一個月內跌倒事件為 0。"></textarea></div>
           </details>
 
-          <details>
-            <summary>（第4段）服務計畫</summary>
+          <details><summary>（第4段）服務計畫</summary>
             <div class="row"><label class="block">服務項目（可複選）</label><div id="services" class="chips"></div></div>
             <div class="row"><label class="block">時程/頻率</label><input id="serviceSched" type="text" placeholder="例：每週二四居服 2hr；每月一次護理評估"></div>
             <div class="row"><label class="block">補充說明</label><textarea id="servicesNote" placeholder="例：同步申請輔具補助；安排交通接送門診。"></textarea></div>
           </details>
 
-          <details>
-            <summary>（第5段）風險與衛教</summary>
+          <details><summary>（第5段）風險與衛教</summary>
             <div class="row"><label class="block">衛教主題（可複選）</label><div id="education" class="chips"></div></div>
             <div class="row"><label class="block">衛教重點/注意事項</label><textarea id="educationNote" placeholder="例：地面防滑、夜間照明、正確用藥與回診提醒等。"></textarea></div>
           </details>
 
-          <details>
-            <summary>（第6段）追蹤與回訪</summary>
+          <details><summary>（第6段）追蹤與回訪</summary>
             <div class="twocol">
               <div class="row"><label class="block">下次追蹤日期（西元）</label><input id="nextDate" type="date"></div>
               <div class="row"><label class="block">追蹤方式（複選）</label><div id="followType" class="chips"></div></div>
@@ -131,7 +173,7 @@
           </details>
 
           <div class="divider"></div>
-          <div class="muted">※ 左側變更會自動更新右側被勾選的段落；某欄若無勾選則敘述省略。</div>
+          <div class="muted">※ 仍勾選的段落會被最新表單內容覆蓋；未勾選的欄位不輸出。</div>
         </div>
       </div>
 
@@ -146,60 +188,85 @@
         </h2>
         <div class="body">
           <textarea id="output" placeholder="左側變更會自動更新到這裡；你也可以在此手動微調文字。"></textarea>
-          <div class="muted">系統以段落標籤合併（例如【第1段：訪視摘要】）。若某段仍勾選，手動改寫後再變更左側選項會以最新表單覆蓋該段。</div>
+          <div class="muted">系統以段落標籤合併（例如【第1段：訪視摘要】）。手動改寫後，左側再次變更會以最新表單覆蓋該段。</div>
         </div>
       </div>
     </div>
   </div>
 
   <script>
-    /* ===== 常數選項 ===== */
-    var VISIT_PARTIES = ["個案","案長女","案次女","配偶","主要照顧者"];
-    var AWARENESS = ["清楚","模糊"];
-    var HEARING   = ["正常","右耳重聽","左耳重聽","雙耳重聽"];
-    var COGNITION = ["正常","欠佳"];
-    var ON_TOPIC  = ["能夠","無法"];
-    var DISEASES  = ["高血壓","糖尿病","中風","心臟病","腎臟病"];
-    var HOSPITALS = ["汐止國泰","內湖三總","忠孝醫院"]; // 可複選
-    var GAIT      = ["穩健","不穩"];
-    var WALK_AID  = ["助行器","拐杖","輪椅"];
-    var ADL_LEVEL = ["可自理","部分需協助（如廁/沐浴）","完全無法自理"];
+    /* ===== 常數選項（原有 + 新增） ===== */
+    const VISIT_PARTIES = ["個案","案長女","案次女","配偶","主要照顧者"];
+    const AWARENESS = ["清楚","模糊"];
+    const HEARING   = ["正常","右耳重聽","左耳重聽","雙耳重聽"];
+    const COGNITION = ["正常","欠佳"];
+    const ON_TOPIC  = ["能夠","無法"];
+    const DISEASES  = ["高血壓","糖尿病","中風","心臟病","腎臟病"];
+    const HOSPITALS = ["汐止國泰","內湖三總","忠孝醫院"]; // 複選
+    const SKIN_INTEGRITY = ["粗糙乾裂","有傷口"];
+    const BEDSORE_SITES  = ["骶尾部","足跟","髖部"];
+    const GAIT      = ["穩健","不穩"];
+    const WALK_AID  = ["助行器","拐杖","輪椅"];
+    const ADL_LEVEL = ["可自理","部分需協助（如廁/沐浴）","完全無法自理"];
 
-    var NEEDS     = ["醫療追蹤/用藥管理","ADL/IADL 自理能力","認知/情緒","環境安全","營養/吞嚥","經濟資源","照顧負荷","交通接送","其他"];
-    var GOALS     = ["維持生活自理","改善步態穩定","提升居家安全","增加衛教遵從","強化家庭支持","改善營養狀況"];
-    var SERVICES  = ["居家服務","居家護理","居家復健","日照中心","送餐服務","交通接送","個案管理/家訪","轉介社工","申請輔具","居家環境改善"];
-    var EDU_TOPICS= ["跌倒預防","用藥安全","壓瘡預防","吞嚥與營養","運動復健","緊急應變/聯絡流程"];
-    var FOLLOW_TYPES = ["電話追蹤","到宅訪視","門診陪同"];
+    // 第1段第二小段
+    const COHAB    = ["獨居","案妻","案子","案女","外看"];
+    const HOUSING  = ["公寓","電梯大樓"];
+    const OUTDOOR  = ["獨立","部份協助","困難","爬梯機"];
+    const OUTDOOR_MAP = {
+      "獨立":"可自行外出",
+      "部份協助":"他人陪同下可外出",
+      "困難":"外出困難",
+      "爬梯機":"外出須使用爬梯機"
+    };
+    const SUPPORT = ["極佳","尚佳","薄弱"];
+    const SUPPORT_MAP = {
+      "極佳":"家庭關係緊密，高度支持",
+      "尚佳":"照顧支持系統尚佳",
+      "薄弱":"支持系統薄弱"
+    };
+    const DEMANDS = ["居家服務","日間照顧","交通接送","專業復能","喘息服務","輔具","無障礙環境改善"];
+
+    // 第2段 問題評估（依你提供）
+    const ISSUES = ["進食問題","洗澡問題","個人修飾問題","穿脫衣物問題","大小便控制問題","上廁所問題","走路問題","上下樓梯問題","購物或外出問題","跌倒風險","移位問題","使用電話問題","備餐問題","處理家務問題","用藥問題","處理財務問題","溝通問題","吞嚥問題","安全疑慮","照顧負荷過重","居住環境障礙","疼痛問題","皮膚照護問題"];
 
     /* ===== 工具 ===== */
-    function $(id){ return document.getElementById(id); }
+    const $ = (id)=>document.getElementById(id);
     function toROC(dateStr){
       if(!dateStr) return "____/__/__";
-      var d = new Date(dateStr);
-      if(isNaN(d)) return "____/__/__";
-      var y = d.getFullYear() - 1911;
-      var m = String(d.getMonth()+1).padStart(2,"0");
-      var day = String(d.getDate()).padStart(2,"0");
-      return y + "/" + m + "/" + day;
+      const d = new Date(dateStr); if(isNaN(d)) return "____/__/__";
+      const y = d.getFullYear() - 1911;
+      const m = String(d.getMonth()+1).padStart(2,"0");
+      const day = String(d.getDate()).padStart(2,"0");
+      return `${y}/${m}/${day}`;
     }
     function renderChips(containerId, list, stateSet){
-      var box = $(containerId); if(!box) return; box.innerHTML = "";
-      list.forEach(function(txt){
-        var label = document.createElement("label"); label.className = "chip";
-        var input = document.createElement("input"); input.type = "checkbox"; input.checked = stateSet.has(txt);
-        input.addEventListener("change", function(){ if(input.checked) stateSet.add(txt); else stateSet.delete(txt); });
+      const box = $(containerId); if(!box) return; box.innerHTML="";
+      list.forEach(txt=>{
+        const label=document.createElement("label"); label.className="chip";
+        const input=document.createElement("input"); input.type="checkbox"; input.checked=stateSet.has(txt);
+        input.addEventListener("change",()=>{ if(input.checked) stateSet.add(txt); else stateSet.delete(txt); scheduleAutoRegenerate();});
         label.appendChild(input); label.appendChild(document.createTextNode(txt)); box.appendChild(label);
       });
     }
     function chipsToList(set){ return set.size? Array.from(set).join("、") : ""; }
 
-    /* ===== 狀態（全部複選 Set） ===== */
-    var state = {
+    /* ===== 狀態 ===== */
+    const state = {
       visitDate:"", parties:new Set(["個案"]),
       awareness:new Set(), hearing:new Set(), cognition:new Set(), onTopic:new Set(),
       noDisease:false, diseases:new Set(), hospitals:new Set(),
+      skin:new Set(), hasBedsore:false, bedsoreSites:new Set(), bedsoreArea:"",
       gait:new Set(), useAid:false, aids:new Set(), adl:new Set(),
-      needs:new Set(), needsNote:"", goals:new Set(), goalsNote:"",
+
+      // 第1段第二小段
+      cohab:new Set(), housing:new Set(), outdoor:new Set(), support:new Set(), demands:new Set(),
+
+      // 第2段
+      issues:new Set(), needsNote:"",
+
+      // 其他段落（先保留）
+      goals:new Set(), goalsNote:"",
       services:new Set(), serviceSched:"", servicesNote:"",
       education:new Set(), educationNote:"",
       nextDate:"", followType:new Set(), followOwner:"", followNote:""
@@ -207,171 +274,229 @@
 
     /* ===== 段落產生器 ===== */
     function genSection1(){
-      var rocDate = toROC(state.visitDate);
-      var parties = state.parties.size ? Array.from(state.parties).join("、") : "個案";
+      const rocDate = toROC(state.visitDate);
+      const parties = state.parties.size? Array.from(state.parties).join("、") : "個案";
 
-      var bits = [];
+      const bits = [];
       if(state.awareness.size) bits.push("意識" + chipsToList(state.awareness));
       if(state.hearing.size)   bits.push("聽力" + chipsToList(state.hearing));
       if(state.cognition.size) bits.push("認知功能" + chipsToList(state.cognition));
 
       if(state.onTopic.size){
-        var talk = Array.from(state.onTopic).map(function(v){ return v + "切題對談"; }).join("、");
+        const talk = Array.from(state.onTopic).map(v=> v + "切題對談").join("、");
         bits.push(talk);
       }
 
+      // 疾病史
       if(state.noDisease){
         bits.push("無疾病史");
       }else if(state.diseases.size){
-        var dis = chipsToList(state.diseases);
-        var hos = state.hospitals.size ? "，規律於" + chipsToList(state.hospitals) + "追蹤" : "";
+        const dis = chipsToList(state.diseases);
+        const hos = state.hospitals.size? "，規律於" + chipsToList(state.hospitals) + "追蹤" : "";
         bits.push("有" + dis + "疾病史" + hos);
+      }
+
+      // 皮膚完整性
+      if(state.skin.size){
+        bits.push("個案皮膚" + chipsToList(state.skin));
+      }
+
+      // 壓瘡（需旗標）
+      if(state.hasBedsore){
+        bits.push("有壓瘡");
+        if(state.bedsoreSites.size){
+          bits.push("壓瘡部位" + chipsToList(state.bedsoreSites));
+        }
+        const area = (state.bedsoreArea||"").trim();
+        if(area) bits.push("壓瘡面積約 " + area + " 公分");
       }
 
       if(state.gait.size) bits.push("步態" + chipsToList(state.gait));
 
-      // ✅ 只有勾「使用輔具」且至少選了 1 個輔具才輸出
-      if (state.useAid && state.aids.size) {
+      // 輔具：勾使用且至少選 1 項才輸出
+      if(state.useAid && state.aids.size){
         bits.push("行動需使用" + chipsToList(state.aids));
       }
 
       if(state.adl.size) bits.push("日常生活自理" + chipsToList(state.adl));
 
-      var sentence = "於" + rocDate + "訪視" + parties + (bits.length? "，" + bits.join("；") : "") + "。";
-      return "【第1段：訪視摘要】\n" + sentence + "\n";
+      const firstSentence = "於" + rocDate + "訪視" + parties + (bits.length? "，" + bits.join("；") : "") + "。";
+
+      // ===== 第二小段：同住／住所／外出／支持／主述 =====
+      const more = [];
+
+      // 同住：獨居優先，否則「與X同住」
+      if(state.cohab.size){
+        if(state.cohab.has("獨居")){
+          more.push("個案獨居");
+        }else{
+          more.push("個案與" + chipsToList(state.cohab) + "同住");
+        }
+      }
+
+      if(state.housing.size){
+        more.push("案家住所為" + chipsToList(state.housing));
+      }
+
+      if(state.outdoor.size){
+        const texts = Array.from(state.outdoor).map(v=> OUTDOOR_MAP[v] || v);
+        more.push("個案" + texts.join("、"));
+      }
+
+      if(state.support.size){
+        const texts = Array.from(state.support).map(v=> SUPPORT_MAP[v] || v);
+        more.push("評估" + texts.join("、"));
+      }
+
+      if(state.demands.size){
+        more.push("家屬主述有" + chipsToList(state.demands) + "需求");
+      }
+
+      const secondSentence = more.length? more.join("；") + "。" : "";
+
+      return "【第1段：訪視摘要】\n" + firstSentence + (secondSentence? "\n" + secondSentence : "") + "\n";
     }
 
     function genSection2(){
-      var list = chipsToList(state.needs), note = (state.needsNote||"").trim();
-      var parts = [];
+      const list = chipsToList(state.issues);
+      const note = (state.needsNote||"").trim();
+      const parts = [];
       if(list) parts.push("主要需求/問題評估：" + list);
       if(note) parts.push("補充：" + note);
       if(!parts.length) return "【第2段：需求與問題評估】\n—\n";
       return "【第2段：需求與問題評估】\n" + parts.join("；") + "。\n";
     }
+
+    // 其他段落沿用舊樣式（可之後再細化）
     function genSection3(){
-      var list = chipsToList(state.goals), note = (state.goalsNote||"").trim();
-      var parts = [];
-      if(list) parts.push("照護目標：" + list);
-      if(note) parts.push("量化/補充：" + note);
-      if(!parts.length) return "【第3段：照護目標】\n—\n";
-      return "【第3段：照護目標】\n" + parts.join("；") + "。\n";
+      const list = chipsToList(state.goals), note=(state.goalsNote||"").trim();
+      const parts=[]; if(list) parts.push("照護目標：" + list); if(note) parts.push("量化/補充：" + note);
+      if(!parts.length) return "【第3段：照護目標】\n—\n"; return "【第3段：照護目標】\n" + parts.join("；") + "。\n";
     }
     function genSection4(){
-      var list = chipsToList(state.services), sched=(state.serviceSched||"").trim(), note=(state.servicesNote||"").trim();
-      var parts = [];
-      if(list)  parts.push("服務計畫：" + list);
-      if(sched) parts.push("時程/頻率：" + sched);
-      if(note)  parts.push("補充：" + note);
-      if(!parts.length) return "【第4段：服務計畫】\n—\n";
-      return "【第4段：服務計畫】\n" + parts.join("；") + "。\n";
+      const list=chipsToList(state.services), sched=(state.serviceSched||"").trim(), note=(state.servicesNote||"").trim();
+      const parts=[]; if(list) parts.push("服務計畫：" + list); if(sched) parts.push("時程/頻率：" + sched); if(note) parts.push("補充：" + note);
+      if(!parts.length) return "【第4段：服務計畫】\n—\n"; return "【第4段：服務計畫】\n" + parts.join("；") + "。\n";
     }
     function genSection5(){
-      var list = chipsToList(state.education), note=(state.educationNote||"").trim();
-      var parts = [];
-      if(list) parts.push("風險與衛教：" + list);
-      if(note) parts.push("重點：" + note);
-      if(!parts.length) return "【第5段：風險與衛教】\n—\n";
-      return "【第5段：風險與衛教】\n" + parts.join("；") + "。\n";
+      const list=chipsToList(state.education), note=(state.educationNote||"").trim();
+      const parts=[]; if(list) parts.push("風險與衛教：" + list); if(note) parts.push("重點：" + note);
+      if(!parts.length) return "【第5段：風險與衛教】\n—\n"; return "【第5段：風險與衛教】\n" + parts.join("；") + "。\n";
     }
     function genSection6(){
-      var dateStr = state.nextDate ? toROC(state.nextDate) : "____/__/__";
-      var parts = ["下次追蹤：" + dateStr];
+      const dateStr = state.nextDate? toROC(state.nextDate) : "____/__/__";
+      const parts = ["下次追蹤：" + dateStr];
       if(state.followType.size) parts.push("方式：" + chipsToList(state.followType));
-      var who = (state.followOwner||"").trim(); if(who) parts.push("負責：" + who);
-      var note = (state.followNote||"").trim(); if(note) parts.push("備註：" + note);
+      const who=(state.followOwner||"").trim(); if(who) parts.push("負責：" + who);
+      const note=(state.followNote||"").trim(); if(note) parts.push("備註：" + note);
       return "【第6段：追蹤與回訪】\n" + parts.join("，") + "。\n";
     }
 
-    /* 對照表 */
-    var generators = {1:genSection1,2:genSection2,3:genSection3,4:genSection4,5:genSection5,6:genSection6};
+    const generators = {1:genSection1,2:genSection2,3:genSection3,4:genSection4,5:genSection5,6:genSection6};
 
-    /* ===== 段落組裝 & 自動更新 ===== */
-    function getSelectedSections(){ var arr=[]; for(var i=1;i<=6;i++){ var el=$("sec"+i); if(el && el.checked) arr.push(i);} return arr; }
+    /* ===== 自動組裝 ===== */
+    function getSelectedSections(){ const arr=[]; for(let i=1;i<=6;i++){ const el=$("sec"+i); if(el && el.checked) arr.push(i); } return arr; }
     function replaceSections(currentText, selected){
-      var text = currentText || "";
-      selected.forEach(function(n){
-        var tag = "【第" + n + "段：";
-        var labeled = new RegExp("^" + tag + "[\\s\\S]*?(?=^【第\\d+段：|\\s*$)", "gm");
-        text = text.replace(labeled, "");
-        if(n===1){ var unlabeled = new RegExp("^於[\\s\\S]*?(?=^【第\\d+段：|\\s*$)", "gm"); text = text.replace(unlabeled, ""); }
+      let text = currentText || "";
+      // 先移除舊段落（含早期未加標籤的情況）
+      selected.forEach(n=>{
+        const tag = `【第${n}段：`;
+        const reLabeled = new RegExp("^" + tag + "[\\s\\S]*?(?=^【第\\d+段：|\\s*$)", "gm");
+        text = text.replace(reLabeled, "");
+        if(n===1){ const reOld = /^於[\s\S]*?(?=^【第\d+段：|\s*$)/gm; text = text.replace(reOld,""); }
       });
-      var parts = selected.map(function(n){ return generators[n](); });
+      const parts = selected.map(n=>generators[n]());
       text = (text.trim()? text.trim()+"\n\n" : "") + parts.join("\n");
       return text.trim() + "\n";
     }
     function autoRegenerate(){
-      var selected = getSelectedSections();
-      if(selected.length===0) return;
-      var cur = $("output").value;
+      const selected = getSelectedSections();
+      if(!selected.length) return;
+      const cur = $("output").value;
       $("output").value = replaceSections(cur, selected);
       $("output").scrollTop = $("output").scrollHeight;
     }
-    var regenScheduled=false;
+    let regenScheduled=false;
     function scheduleAutoRegenerate(){
       if(regenScheduled) return;
       regenScheduled=true;
-      requestAnimationFrame(function(){ regenScheduled=false; autoRegenerate(); });
+      requestAnimationFrame(()=>{ regenScheduled=false; autoRegenerate(); });
     }
 
-    /* ===== 初始化 ===== */
-    window.addEventListener("DOMContentLoaded", function(){
-      $("visitDate").addEventListener("input", function(e){ state.visitDate = e.target.value; });
+    /* ===== 初始化 UI ===== */
+    window.addEventListener("DOMContentLoaded", ()=>{
+      $("visitDate").addEventListener("input", e=>{ state.visitDate=e.target.value; scheduleAutoRegenerate(); });
 
       renderChips("parties",    VISIT_PARTIES, state.parties);
       renderChips("awareness",  AWARENESS,     state.awareness);
       renderChips("hearing",    HEARING,       state.hearing);
       renderChips("cognition",  COGNITION,     state.cognition);
       renderChips("onTopic",    ON_TOPIC,      state.onTopic);
+
       renderChips("diseases",   DISEASES,      state.diseases);
       renderChips("hospitals",  HOSPITALS,     state.hospitals);
+
+      renderChips("skinIntegrity", SKIN_INTEGRITY, state.skin);
+      renderChips("bedsoreSites",  BEDSORE_SITES,  state.bedsoreSites);
+
       renderChips("gait",       GAIT,          state.gait);
       renderChips("aids",       WALK_AID,      state.aids);
       renderChips("adl",        ADL_LEVEL,     state.adl);
 
-      $("noDisease").addEventListener("change", function(e){
+      renderChips("cohab",      COHAB,         state.cohab);
+      renderChips("housing",    HOUSING,       state.housing);
+      renderChips("outdoor",    OUTDOOR,       state.outdoor);
+      renderChips("support",    SUPPORT,       state.support);
+      renderChips("demands",    DEMANDS,       state.demands);
+
+      renderChips("issues",     ISSUES,        state.issues);
+
+      // 切換壓瘡旗標顯示/隱藏子欄位
+      $("hasBedsore").addEventListener("change", e=>{
+        state.hasBedsore = e.target.checked;
+        $("bedsoreBlock").style.display = state.hasBedsore? "block" : "none";
+        if(!state.hasBedsore){ state.bedsoreSites.clear(); state.bedsoreArea=""; $("bedsoreArea").value=""; }
+        scheduleAutoRegenerate();
+      });
+      $("bedsoreArea").addEventListener("input", e=>{ state.bedsoreArea = e.target.value; scheduleAutoRegenerate(); });
+
+      $("noDisease").addEventListener("change", e=>{
         state.noDisease = e.target.checked;
         $("diseases").style.opacity = state.noDisease ? 0.4 : 1;
         $("diseases").style.pointerEvents = state.noDisease ? "none" : "auto";
         $("hospitalRow").style.display = state.noDisease ? "none" : "block";
         if(state.noDisease){ state.diseases.clear(); state.hospitals.clear(); }
+        scheduleAutoRegenerate();
       });
-      $("useAid").addEventListener("change", function(e){
+
+      $("useAid").addEventListener("change", e=>{
         state.useAid = e.target.checked;
         $("useAidLabel").textContent = state.useAid ? "使用" : "未使用";
         $("aids").style.display = state.useAid ? "flex" : "none";
         if(!state.useAid) state.aids.clear();
+        scheduleAutoRegenerate();
       });
 
-      renderChips("needs",      NEEDS,         state.needs);
-      $("needsNote").addEventListener("input", function(e){ state.needsNote = e.target.value; });
+      $("needsNote").addEventListener("input", e=>{ state.needsNote = e.target.value; scheduleAutoRegenerate(); });
 
-      renderChips("goals",      GOALS,         state.goals);
-      $("goalsNote").addEventListener("input", function(e){ state.goalsNote = e.target.value; });
+      // 其他
+      $("nextDate").addEventListener("input", e=>{ state.nextDate=e.target.value; scheduleAutoRegenerate(); });
+      $("followOwner").addEventListener("input", e=>{ state.followOwner=e.target.value; scheduleAutoRegenerate(); });
+      $("followNote").addEventListener("input", e=>{ state.followNote=e.target.value; scheduleAutoRegenerate(); });
 
-      renderChips("services",   SERVICES,      state.services);
-      $("serviceSched").addEventListener("input", function(e){ state.serviceSched = e.target.value; });
-      $("servicesNote").addEventListener("input",  function(e){ state.servicesNote = e.target.value; });
+      // 容器層級事件
+      const leftCard = document.querySelectorAll(".grid .card")[0];
+      if(leftCard){ leftCard.addEventListener("input", scheduleAutoRegenerate); leftCard.addEventListener("change", scheduleAutoRegenerate); }
 
-      renderChips("education",  EDU_TOPICS,    state.education);
-      $("educationNote").addEventListener("input", function(e){ state.educationNote = e.target.value; });
-
-      renderChips("followType", FOLLOW_TYPES,  state.followType);
-      $("nextDate").addEventListener("input",   function(e){ state.nextDate = e.target.value; });
-      $("followOwner").addEventListener("input",function(e){ state.followOwner = e.target.value; });
-      $("followNote").addEventListener("input", function(e){ state.followNote = e.target.value; });
-
-      var left = document.querySelectorAll(".grid .card")[0];
-      if(left){ left.addEventListener("input", scheduleAutoRegenerate); left.addEventListener("change", scheduleAutoRegenerate); }
-
-      $("copyBtn").addEventListener("click", function(){
-        navigator.clipboard.writeText($("output").value).then(function(){
-          var btn=$("copyBtn"), old=btn.textContent; btn.textContent="已複製"; setTimeout(function(){ btn.textContent=old; },1200);
-        }).catch(function(){ alert("無法複製，請手動選取文字。"); });
+      $("copyBtn").addEventListener("click", async ()=>{
+        try{
+          await navigator.clipboard.writeText($("output").value);
+          const btn=$("copyBtn"); const old=btn.textContent; btn.textContent="已複製"; setTimeout(()=>btn.textContent=old,1200);
+        }catch{ alert("無法複製，請手動選取文字。"); }
       });
-      $("clearBtn").addEventListener("click", function(){ $("output").value=""; });
+      $("clearBtn").addEventListener("click", ()=>{ $("output").value=""; });
 
-      // 首次載入：因 sec1 預設勾選 + parties 含「個案」，先產生第1段
+      // 初次載入（sec1 預設勾選）
       scheduleAutoRegenerate();
     });
   </script>
