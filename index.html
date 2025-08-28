@@ -212,7 +212,7 @@
       var parties = state.parties.size ? Array.from(state.parties).join("、") : "個案";
 
       var bits = [];
-      if(state.awareness.size) bits.push("意識" + chipsToList(state.awareness));
+      if(state.awareness.size) bits.push("個案意識" + chipsToList(state.awareness));
       if(state.hearing.size)   bits.push("聽力" + chipsToList(state.hearing));
       if(state.cognition.size) bits.push("認知功能" + chipsToList(state.cognition));
 
@@ -231,8 +231,8 @@
 
       if(state.gait.size) bits.push("步態" + chipsToList(state.gait));
 
-      if(state.useAid){
-        bits.push("行動需使用" + (state.aids.size ? chipsToList(state.aids) : "助行器、拐杖、輪椅"));
+      if(sstate.useAid && state.aids.size){
+        bits.push("行動需使用" + chipsToList(state.aids));
       }
 
       if(state.adl.size) bits.push("日常生活自理" + chipsToList(state.adl));
