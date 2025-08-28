@@ -41,7 +41,7 @@
     @media(max-width:760px){ .twocol{ grid-template-columns:1fr; } }
     textarea#output { min-height: 420px; border-radius:12px; }
 
-    /* 右側輸出卡片 sticky：跟著視窗捲動 */
+    /* sticky：右側跟著視窗走 */
     .right-sticky { position: sticky; top: 12px; align-self: start; }
     @media(max-width:980px){ .right-sticky{ top: 8px; } }
   </style>
@@ -49,7 +49,7 @@
 <body>
   <div class="container">
     <h1>照顧計畫敘述產生器（多段落 / 可編輯）</h1>
-    <p class="lead">左側勾選或輸入即自動更新右側文字（不需按按鈕）。</p>
+    <p class="lead">左側勾選或輸入即自動更新右側文字（首次開啟不會自動產生）。</p>
 
     <div class="grid">
       <!-- 左側：段落選擇 + 各段表單 -->
@@ -214,8 +214,7 @@
           </details>
 
           <div class="divider"></div>
-          <!-- 已移除「插入」按鈕 -->
-          <div class="muted" style="margin-top:6px;">說明：現在左側變更會自動更新右側被勾選的段落。</div>
+          <div class="muted" style="margin-top:6px;">說明：左側變更會自動更新右側被勾選的段落。</div>
         </div>
       </div>
 
@@ -255,7 +254,7 @@
     const EDU_TOPICS= ["跌倒預防","用藥安全","壓瘡預防","吞嚥與營養","運動復健","緊急應變/聯絡流程"];
     const FOLLOW_TYPES = ["電話追蹤","到宅訪視","門診陪同"];
 
-    // ===== 工具 =====
+    // ===== 小工具 =====
     const $ = (id)=>document.getElementById(id);
     function toROC(dateStr){
       if(!dateStr) return "____/__/__";
@@ -302,14 +301,14 @@
     // ===== 狀態 =====
     const state = {
       visitDate: "",
-      parties: new Set(["個案"]),
+      parties: new Set(["個案"]), // 預設勾選個案
       awareness: {value:"清楚"},
       hearing:   {value:"正常"},
       cognition: {value:"正常"},
       onTopic:   {value:"能夠"},
       noDisease: false,
       diseases:  new Set(),
-      hospitals: new Set(),         // 改為可複選
+      hospitals: new Set(),
       gait:      {value:"穩健"},
       useAid:    false,
       aids:      new Set(),
@@ -339,7 +338,7 @@
     renderSegment("cognition", COGNITION, state.cognition);
     renderSegment("onTopic", ON_TOPIC, state.onTopic);
     renderChips("diseases", DISEASES, state.diseases);
-    renderChips("hospitals", HOSPITALS, state.hospitals);   // 可複選
+    renderChips("hospitals", HOSPITALS, state.hospitals); // 可複選
     renderSegment("gait", GAIT, state.gait);
     renderChips("aids", WALK_AID, state.aids);
     renderSegment("adl", ADL_LEVEL, state.adl);
@@ -349,10 +348,7 @@
       $("diseases").style.opacity = state.noDisease ? 0.4 : 1;
       $("diseases").style.pointerEvents = state.noDisease ? "none" : "auto";
       $("hospitalRow").style.display = state.noDisease ? "none" : "block";
-      if(state.noDisease){
-        state.diseases.clear();
-        state.hospitals.clear();
-      }
+      if(state.noDisease){ state.diseases.clear(); state.hospitals.clear(); }
     });
     $("useAid").addEventListener("change", e => {
       state.useAid = e.target.checked;
@@ -362,7 +358,6 @@
       if(!state.useAid) state.aids.clear();
     });
 
-    // 其它段落的 UI
     renderChips("needs", NEEDS, state.needs);
     $("needsNote").addEventListener("input", e=> state.needsNote = e.target.value);
 
@@ -381,44 +376,49 @@
     $("followOwner").addEventListener("input", e=> state.followOwner = e.target.value);
     $("followNote").addEventListener("input", e=> state.followNote = e.target.value);
 
-    // ===== 段落產生器 =====
+    // ===== 段落產生器（去除中/小括弧） =====
     function genSection1(){
       const rocDate = toROC(state.visitDate);
       const parties = (state.parties.size? Array.from(state.parties).join("、") : "個案");
 
-      // 疾病敘述
       let diseaseFinal = "無疾病史";
       if(!state.noDisease && state.diseases.size){
-        const dis = Array.from(state.diseases).join("/ ");
+        const dis = Array.from(state.diseases).join(" / "); // 無括號
         const hos = state.hospitals.size ? `，規律於${Array.from(state.hospitals).join("、")}追蹤` : "";
-        diseaseFinal = `有（${dis}）疾病史${hos}`;
+        diseaseFinal = `有${dis}疾病史${hos}`; // 無括號
       }
 
-      // 行走/ADL
       const walkingPhrase = state.useAid
-        ? `行走使用（${ state.aids.size? Array.from(state.aids).join("、") : "助行器、拐杖、輪椅" }）`
+        ? `行走使用${ state.aids.size? Array.from(state.aids).join("、") : "助行器、拐杖、輪椅" }` // 無括號
         : "行走未使用輔具";
 
       let adlPhrase = "基本日常生活可自理";
       if(state.adl.value==="部分需協助（如廁/沐浴）") adlPhrase = "基本日常生活部分（如廁/沐浴）需協助";
       if(state.adl.value==="完全無法自理") adlPhrase = "基本日常生活完全無法自理";
 
-      const narrative = `於${rocDate}訪視【${parties}】，個案意識${state.awareness.value}，聽力${state.hearing.value}，認知功能${state.cognition.value}，${state.onTopic.value}切題對談，${diseaseFinal}；步態${state.gait.value}，${walkingPhrase}；${adlPhrase}。`;
-      return `【第1段：訪視摘要】\n${narrative}\n`;
+      // 受訪對象不加【】
+      const narrative = `於${rocDate}訪視${parties}，個案意識${state.awareness.value}，聽力${state.hearing.value}，認知功能${state.cognition.value}，${state.onTopic.value}切題對談，${diseaseFinal}；步態${state.gait.value}，${walkingPhrase}；${adlPhrase}。`;
+      return `【第1段：訪視摘要】
+${narrative}
+`;
     }
     function genSection2(){
       const list = chipsToList(state.needs);
       const note = state.needsNote?.trim();
       const main = list? `主要需求/問題評估：${list}。` : "主要需求/問題評估：—。";
       const extra = note? `補充：${note}` : "";
-      return `【第2段：需求與問題評估】\n${main} ${extra}\n`;
+      return `【第2段：需求與問題評估】
+${main} ${extra}
+`;
     }
     function genSection3(){
       const list = chipsToList(state.goals);
       const note = state.goalsNote?.trim();
       const main = list? `照護目標：${list}。` : "照護目標：—。";
       const extra = note? `量化/補充：${note}` : "";
-      return `【第3段：照護目標】\n${main} ${extra}\n`;
+      return `【第3段：照護目標】
+${main} ${extra}
+`;
     }
     function genSection4(){
       const list = chipsToList(state.services);
@@ -427,14 +427,18 @@
       const main = list? `服務計畫：${list}。` : "服務計畫：—。";
       const s1 = sched? `時程/頻率：${sched}。` : "";
       const s2 = note?  `補充：${note}` : "";
-      return `【第4段：服務計畫】\n${main} ${s1} ${s2}\n`;
+      return `【第4段：服務計畫】
+${main} ${s1} ${s2}
+`;
     }
     function genSection5(){
       const list = chipsToList(state.education);
       const note = state.educationNote?.trim();
       const main = list? `風險與衛教：${list}。` : "風險與衛教：—。";
       const extra = note? `重點：${note}` : "";
-      return `【第5段：風險與衛教】\n${main} ${extra}\n`;
+      return `【第5段：風險與衛教】
+${main} ${extra}
+`;
     }
     function genSection6(){
       const dateStr = state.nextDate? toROC(state.nextDate) : "____/__/__";
@@ -442,31 +446,36 @@
       const note = state.followNote?.trim();
       const main = `下次追蹤：${dateStr}，方式：${state.followType.value}${ who? `，負責：${who}`:""}。`;
       const extra = note? `備註：${note}` : "";
-      return `【第6段：追蹤與回訪】\n${main} ${extra}\n`;
+      return `【第6段：追蹤與回訪】
+${main} ${extra}
+`;
     }
 
     const generators = {1:genSection1,2:genSection2,3:genSection3,4:genSection4,5:genSection5,6:genSection6};
 
-    function replaceSections(currentText, selected){
-      let text = currentText || "";
-      // 先把相同段落「全部」移除（gm）
-      selected.forEach(n => {
-        const tag = `【第${n}段：`;
-        const re = new RegExp(`^${tag}[^]*?(?=^【第\\d+段：|\\Z)`, "gm");
-        text = text.replace(re, "");
-      });
-      // 重新附加新的段落內容
-      const parts = selected.map(n => generators[n]());
-      text = (text.trim()? text.trim() + "\n\n" : "") + parts.join("\n");
-      return text.trim() + "\n";
-    }
-
-    // === 自動即時生成（去彈跳，避免重複） ===
-    const leftCard = document.querySelectorAll('.grid .card')[0];
     function getSelectedSections(){
       const arr = []; for(let i=1;i<=6;i++){ if($("sec"+i)?.checked) arr.push(i); }
       return arr;
     }
+
+    function replaceSections(currentText, selected){
+      let text = currentText || "";
+      // 先把相同段落「全部」移除（gm），確保不會累積重複
+      selected.forEach(n => {
+        const tag = `【第${n}段：`;
+        const re = new RegExp(`^${tag}[^]*?(?=^【第\d+段：|\Z)`, "gm");
+        text = text.replace(re, "");
+      });
+      // 重新附加新的段落內容
+      const parts = selected.map(n => generators[n]());
+      text = (text.trim()? text.trim() + "
+
+" : "") + parts.join("
+");
+      return text.trim() + "
+";
+    }
+
     function autoRegenerate(){
       const selected = getSelectedSections();
       if(selected.length===0) return;
@@ -474,6 +483,8 @@
       $("output").value = replaceSections(cur, selected);
       const ta = $("output"); ta.scrollTop = ta.scrollHeight;
     }
+
+    // 去彈跳：同一輪多個 input/change 只觸發一次
     let regenScheduled = false;
     function scheduleAutoRegenerate(){
       if (regenScheduled) return;
@@ -483,12 +494,15 @@
         autoRegenerate();
       });
     }
-    if(leftCard){
-      leftCard.addEventListener('input', scheduleAutoRegenerate); // 只用 input，避免 change 重複
-    }
-    window.addEventListener('DOMContentLoaded', autoRegenerate);
 
-    // 右側操作
+    const leftCard = document.querySelectorAll('.grid .card')[0];
+    if(leftCard){
+      leftCard.addEventListener('input', scheduleAutoRegenerate);
+      leftCard.addEventListener('change', scheduleAutoRegenerate);
+    }
+    // ⚠️ 不在載入時自動產生，保持右側空白
+
+    // 右側按鈕
     $("copyBtn").addEventListener("click", async () => {
       try{
         await navigator.clipboard.writeText($("output").value);
