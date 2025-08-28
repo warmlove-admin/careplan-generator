@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>照顧計畫敘述產生器（多段落／可編輯）</title>
+  <title>[PREVIEW] 照顧計畫敘述產生器</title>
   <link rel="icon" href="data:,"><!-- 避免 favicon 404 -->
   <style>
     :root{ --ink:#0f172a; --muted:#64748b; --line:#e2e8f0; --bg:#f8fafc; }
@@ -39,8 +39,8 @@
 </head>
 <body>
   <div class="container">
-    <h1>照顧計畫敘述產生器（多段落／可編輯）</h1>
-    <p class="lead">左側勾選或輸入會自動更新右側文字（首次開啟預設產生第1段）。</p>
+    <h1>[PREVIEW] 照顧計畫敘述產生器（多段落／可編輯）</h1>
+    <p class="lead">這是預覽頁，不會影響首頁。左側勾選或輸入會自動更新右側文字（目前：首次開啟預設產生第1段）。</p>
 
     <div class="grid">
       <!-- 左側 -->
@@ -60,7 +60,6 @@
 
           <details open>
             <summary>（第1段）訪視摘要</summary>
-
             <div class="row">
               <label class="block">訪視日期（西元）</label>
               <input id="visitDate" type="date">
@@ -76,7 +75,7 @@
 
             <div class="row">
               <label class="block">疾病史</label>
-              <div class="muted" style="margin-bottom:6px;">（勾選「無疾病史」或選擇疾病／追蹤院所；未勾選則整句省略）</div>
+              <div class="muted" style="margin-bottom:6px;">（勾「無疾病史」或選疾病/追蹤院所；未勾選則整句省略）</div>
               <div class="chips"><label class="chip"><input id="noDisease" type="checkbox">無疾病史</label></div>
               <div id="diseases" class="chips" style="margin-top:6px;"></div>
               <div class="row" id="hospitalRow" style="margin-top:8px;">
@@ -132,7 +131,7 @@
           </details>
 
           <div class="divider"></div>
-          <div class="muted">說明：左側變更會自動更新右側被勾選的段落；某欄若無勾選則敘述省略。</div>
+          <div class="muted">※ 左側變更會自動更新右側被勾選的段落；某欄若無勾選則敘述省略。</div>
         </div>
       </div>
 
@@ -155,12 +154,12 @@
 
   <script>
     /* ===== 常數選項 ===== */
-    var VISIT_PARTIES = ["個案","配偶","案子","案女","外籍看護"];
+    var VISIT_PARTIES = ["個案","案長女","案次女","配偶","主要照顧者"];
     var AWARENESS = ["清楚","模糊"];
     var HEARING   = ["正常","右耳重聽","左耳重聽","雙耳重聽"];
     var COGNITION = ["正常","欠佳"];
     var ON_TOPIC  = ["能夠","無法"];
-    var DISEASES  = ["高血壓","糖尿病","中風","心臟病","腎臟病","失智","癌症"];
+    var DISEASES  = ["高血壓","糖尿病","中風","心臟病","腎臟病"];
     var HOSPITALS = ["汐止國泰","內湖三總","忠孝醫院"]; // 可複選
     var GAIT      = ["穩健","不穩"];
     var WALK_AID  = ["助行器","拐杖","輪椅"];
@@ -212,7 +211,7 @@
       var parties = state.parties.size ? Array.from(state.parties).join("、") : "個案";
 
       var bits = [];
-      if(state.awareness.size) bits.push("個案意識" + chipsToList(state.awareness));
+      if(state.awareness.size) bits.push("意識" + chipsToList(state.awareness));
       if(state.hearing.size)   bits.push("聽力" + chipsToList(state.hearing));
       if(state.cognition.size) bits.push("認知功能" + chipsToList(state.cognition));
 
@@ -231,7 +230,8 @@
 
       if(state.gait.size) bits.push("步態" + chipsToList(state.gait));
 
-      if(state.useAid && state.aids.size){
+      // ✅ 只有勾「使用輔具」且至少選了 1 個輔具才輸出
+      if (state.useAid && state.aids.size) {
         bits.push("行動需使用" + chipsToList(state.aids));
       }
 
@@ -286,7 +286,7 @@
     /* 對照表 */
     var generators = {1:genSection1,2:genSection2,3:genSection3,4:genSection4,5:genSection5,6:genSection6};
 
-    /* ===== 段落組裝 ===== */
+    /* ===== 段落組裝 & 自動更新 ===== */
     function getSelectedSections(){ var arr=[]; for(var i=1;i<=6;i++){ var el=$("sec"+i); if(el && el.checked) arr.push(i);} return arr; }
     function replaceSections(currentText, selected){
       var text = currentText || "";
