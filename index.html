@@ -29,7 +29,7 @@
     .small { font-size: 12px; color:var(--muted); }
     .flex { display:flex; align-items:center; gap:10px; }
     .btn { padding:10px 14px; border-radius:10px; border:1px solid var(--ink); background:var(--ink); color:#fff; cursor:pointer; }
-    .btn.secondary { background:#f1f5f9; color:var(--ink); border-color:#cbd5e1; }
+    .btn.secondary { background:#f1f5f9; color:#0b1220; border-color:#cbd5e1; }
     .muted { color:var(--muted); font-size:12px; }
     .sectitle { font-weight:600; font-size:14px; margin-top:10px; margin-bottom:6px;}
     .section-list label { display:flex; align-items:center; gap:8px; margin:6px 0; }
@@ -40,8 +40,6 @@
     .twocol { display:grid; grid-template-columns: 1fr 1fr; gap:10px; }
     @media(max-width:760px){ .twocol{ grid-template-columns:1fr; } }
     textarea#output { min-height: 420px; border-radius:12px; }
-
-    /* sticky：右側跟著視窗走 */
     .right-sticky { position: sticky; top: 12px; align-self: start; }
     @media(max-width:980px){ .right-sticky{ top: 8px; } }
   </style>
@@ -52,7 +50,6 @@
     <p class="lead">左側勾選或輸入即自動更新右側文字（首次開啟不會自動產生）。</p>
 
     <div class="grid">
-      <!-- 左側：段落選擇 + 各段表單 -->
       <div class="card">
         <h2>段落選擇與輸入</h2>
         <div class="body">
@@ -67,7 +64,6 @@
           </div>
           <div class="divider"></div>
 
-          <!-- 第1段 -->
           <details open>
             <summary>（第1段）訪視摘要</summary>
             <div class="row">
@@ -134,7 +130,6 @@
             </div>
           </details>
 
-          <!-- 第2段 -->
           <details>
             <summary>（第2段）需求與問題評估</summary>
             <div class="row">
@@ -147,7 +142,6 @@
             </div>
           </details>
 
-          <!-- 第3段 -->
           <details>
             <summary>（第3段）照護目標</summary>
             <div class="row">
@@ -160,7 +154,6 @@
             </div>
           </details>
 
-          <!-- 第4段 -->
           <details>
             <summary>（第4段）服務計畫</summary>
             <div class="row">
@@ -177,7 +170,6 @@
             </div>
           </details>
 
-          <!-- 第5段 -->
           <details>
             <summary>（第5段）風險與衛教</summary>
             <div class="row">
@@ -190,7 +182,6 @@
             </div>
           </details>
 
-          <!-- 第6段 -->
           <details>
             <summary>（第6段）追蹤與回訪</summary>
             <div class="twocol">
@@ -218,7 +209,6 @@
         </div>
       </div>
 
-      <!-- 右側：可編輯輸出（sticky） -->
       <div class="card right-sticky">
         <h2 style="display:flex;justify-content:space-between;align-items:center;padding-right:16px;">
           <span>自動產生敘述（可編輯）</span>
@@ -255,7 +245,7 @@
     const FOLLOW_TYPES = ["電話追蹤","到宅訪視","門診陪同"];
 
     // ===== 小工具 =====
-    const $ = (id)=>document.getElementById(id);
+    const $ = function(id){ return document.getElementById(id); };
     function toROC(dateStr){
       if(!dateStr) return "____/__/__";
       const d = new Date(dateStr);
@@ -263,19 +253,19 @@
       const y = d.getFullYear() - 1911;
       const m = String(d.getMonth()+1).padStart(2,"0");
       const day = String(d.getDate()).padStart(2,"0");
-      return `${y}/${m}/${day}`;
+      return y + "/" + m + "/" + day;
     }
     function renderChips(containerId, list, stateSet){
       const box = $(containerId);
       if(!box) return;
       box.innerHTML = "";
-      list.forEach(txt => {
+      list.forEach(function(txt){
         const label = document.createElement("label");
         label.className = "chip";
         const input = document.createElement("input");
         input.type = "checkbox";
         input.checked = stateSet.has(txt);
-        input.addEventListener("change", () => {
+        input.addEventListener("change", function(){
           if(input.checked) stateSet.add(txt); else stateSet.delete(txt);
         });
         label.appendChild(input);
@@ -287,12 +277,12 @@
       const box = $(containerId);
       if(!box) return;
       box.innerHTML = "";
-      list.forEach(txt => {
+      list.forEach(function(txt){
         const id = containerId+"-"+txt;
         const input = document.createElement("input");
         input.type = "radio"; input.name = containerId; input.id = id;
         input.checked = (state.value===txt);
-        input.addEventListener("change", () => { state.value = txt; });
+        input.addEventListener("change", function(){ state.value = txt; });
         const label = document.createElement("label");
         label.htmlFor = id; label.textContent = txt;
         box.appendChild(input); box.appendChild(label);
@@ -303,7 +293,7 @@
     // ===== 狀態 =====
     const state = {
       visitDate: "",
-      parties: new Set(["個案"]), // 預設勾選個案
+      parties: new Set(["個案"]),
       awareness: {value:"清楚"},
       hearing:   {value:"正常"},
       cognition: {value:"正常"},
@@ -334,103 +324,93 @@
 
     // ===== 段落產生器（去除中/小括弧） =====
     function genSection1(){
-      const rocDate = toROC(state.visitDate);
-      const parties = (state.parties.size? Array.from(state.parties).join("、") : "個案");
+      var rocDate = toROC(state.visitDate);
+      var parties = state.parties.size ? Array.from(state.parties).join("、") : "個案";
 
-      let diseaseFinal = "無疾病史";
+      var diseaseFinal = "無疾病史";
       if(!state.noDisease && state.diseases.size){
-        const dis = Array.from(state.diseases).join(" / "); // 無括號
-        const hos = state.hospitals.size ? `，規律於${Array.from(state.hospitals).join("、")}追蹤` : "";
-        diseaseFinal = `有${dis}疾病史${hos}`; // 無括號
+        var dis = Array.from(state.diseases).join(" / ");
+        var hos = state.hospitals.size ? "，規律於" + Array.from(state.hospitals).join("、") + "追蹤" : "";
+        diseaseFinal = "有" + dis + "疾病史" + hos;
       }
 
-      const walkingPhrase = state.useAid
-        ? `行走使用${ state.aids.size? Array.from(state.aids).join("、") : "助行器、拐杖、輪椅" }` // 無括號
+      var walkingPhrase = state.useAid
+        ? "行走使用" + (state.aids.size ? Array.from(state.aids).join("、") : "助行器、拐杖、輪椅")
         : "行走未使用輔具";
 
-      let adlPhrase = "基本日常生活可自理";
-      if(state.adl.value==="部分需協助（如廁/沐浴）") adlPhrase = "基本日常生活部分（如廁/沐浴）需協助";
-      if(state.adl.value==="完全無法自理") adlPhrase = "基本日常生活完全無法自理";
+      var adlPhrase = "基本日常生活可自理";
+      if(state.adl.value === "部分需協助（如廁/沐浴）") adlPhrase = "基本日常生活部分（如廁/沐浴）需協助";
+      if(state.adl.value === "完全無法自理") adlPhrase = "基本日常生活完全無法自理";
 
-      // 受訪對象不加【】
-      const narrative = `於${rocDate}訪視${parties}，個案意識${state.awareness.value}，聽力${state.hearing.value}，認知功能${state.cognition.value}，${state.onTopic.value}切題對談，${diseaseFinal}；步態${state.gait.value}，${walkingPhrase}；${adlPhrase}。`;
-      return `【第1段：訪視摘要】
-${narrative}
-`;
+      var narrative = "於" + rocDate + "訪視" + parties + "，個案意識" + state.awareness.value + "，聽力" + state.hearing.value + "，認知功能" + state.cognition.value + "，" + state.onTopic.value + "切題對談，" + diseaseFinal + "；步態" + state.gait.value + "，" + walkingPhrase + "；" + adlPhrase + "。";
+      return "【第1段：訪視摘要】
+" + narrative + "
+";
     }
     function genSection2(){
-      const list = chipsToList(state.needs);
-      const note = state.needsNote?.trim();
-      const main = list? `主要需求/問題評估：${list}。` : "主要需求/問題評估：—。";
-      const extra = note? `補充：${note}` : "";
-      return `【第2段：需求與問題評估】
-${main} ${extra}
-`;
+      var list = chipsToList(state.needs);
+      var note = (state.needsNote || "").trim();
+      var main = list ? ("主要需求/問題評估：" + list + "。") : "主要需求/問題評估：—。";
+      var extra = note ? ("補充：" + note) : "";
+      return "【第2段：需求與問題評估】
+" + main + " " + extra + "
+";
     }
     function genSection3(){
-      const list = chipsToList(state.goals);
-      const note = state.goalsNote?.trim();
-      const main = list? `照護目標：${list}。` : "照護目標：—。";
-      const extra = note? `量化/補充：${note}` : "";
-      return `【第3段：照護目標】
-${main} ${extra}
-`;
+      var list = chipsToList(state.goals);
+      var note = (state.goalsNote || "").trim();
+      var main = list ? ("照護目標：" + list + "。") : "照護目標：—。";
+      var extra = note ? ("量化/補充：" + note) : "";
+      return "【第3段：照護目標】
+" + main + " " + extra + "
+";
     }
     function genSection4(){
-      const list = chipsToList(state.services);
-      const sched = state.serviceSched?.trim();
-      const note  = state.servicesNote?.trim();
-      const main = list? `服務計畫：${list}。` : "服務計畫：—。";
-      const s1 = sched? `時程/頻率：${sched}。` : "";
-      const s2 = note?  `補充：${note}` : "";
-      return `【第4段：服務計畫】
-${main} ${s1} ${s2}
-`;
+      var list = chipsToList(state.services);
+      var sched = (state.serviceSched || "").trim();
+      var note  = (state.servicesNote || "").trim();
+      var main = list ? ("服務計畫：" + list + "。") : "服務計畫：—。";
+      var s1 = sched ? ("時程/頻率：" + sched + "。") : "";
+      var s2 = note ?  ("補充：" + note) : "";
+      return "【第4段：服務計畫】
+" + main + " " + s1 + " " + s2 + "
+";
     }
     function genSection5(){
-      const list = chipsToList(state.education);
-      const note = state.educationNote?.trim();
-      const main = list? `風險與衛教：${list}。` : "風險與衛教：—。";
-      const extra = note? `重點：${note}` : "";
-      return `【第5段：風險與衛教】
-${main} ${extra}
-`;
+      var list = chipsToList(state.education);
+      var note = (state.educationNote || "").trim();
+      var main = list ? ("風險與衛教：" + list + "。") : "風險與衛教：—。";
+      var extra = note ? ("重點：" + note) : "";
+      return "【第5段：風險與衛教】
+" + main + " " + extra + "
+";
     }
     function genSection6(){
-      const dateStr = state.nextDate? toROC(state.nextDate) : "____/__/__";
-      const who = state.followOwner?.trim();
-      const note = state.followNote?.trim();
-      const main = `下次追蹤：${dateStr}，方式：${state.followType.value}${ who? `，負責：${who}`:""}。`;
-      const extra = note? `備註：${note}` : "";
-      return `【第6段：追蹤與回訪】
-${main} ${extra}
-`;
+      var dateStr = state.nextDate ? toROC(state.nextDate) : "____/__/__";
+      var who = (state.followOwner || "").trim();
+      var note = (state.followNote || "").trim();
+      var main = "下次追蹤：" + dateStr + "，方式：" + state.followType.value + (who ? "，負責：" + who : "") + "。";
+      var extra = note ? ("備註：" + note) : "";
+      return "【第6段：追蹤與回訪】
+" + main + " " + extra + "
+";
     }
 
-    const generators = {1:genSection1,2:genSection2,3:genSection3,4:genSection4,5:genSection5,6:genSection6};
+    var generators = {1:genSection1,2:genSection2,3:genSection3,4:genSection4,5:genSection5,6:genSection6};
 
     function getSelectedSections(){
-      const arr = []; for(let i=1;i<=6;i++){ if($("sec"+i)?.checked) arr.push(i); }
+      var arr = []; for(var i=1;i<=6;i++){ if($("sec"+i) && $("sec"+i).checked) arr.push(i); }
       return arr;
     }
 
     function replaceSections(currentText, selected){
-      let text = currentText || "";
-      // 把相同段落全部移除（避免重複）
-      selected.forEach(n => {
-        const tag = `【第${n}段：`;
-        const re = new RegExp(`^${tag}[\s\S]*?(?=^【第\d+段：|\s*$)`, "gm");
+      var text = currentText || "";
+      selected.forEach(function(n){
+        var tag = "【第" + n + "段：";
+        var re = new RegExp("^" + tag + "[\s\S]*?(?=^【第\d+段：|\s*$)", "gm");
         text = text.replace(re, "");
       });
-      const parts = selected.map(n => generators[n]());
-      text = (text.trim()? text.trim() + "
-
-" : "") + parts.join("
-");
-      return text.trim() + "
-";
-    });
-      const parts = selected.map(n => generators[n]());
+      var parts = selected.map(function(n){ return generators[n](); });
       text = (text.trim()? text.trim() + "
 
 " : "") + parts.join("
@@ -440,27 +420,26 @@ ${main} ${extra}
     }
 
     function autoRegenerate(){
-      const selected = getSelectedSections();
+      var selected = getSelectedSections();
       if(selected.length===0) return;
-      const cur = $("output").value;
+      var cur = $("output").value;
       $("output").value = replaceSections(cur, selected);
-      const ta = $("output"); ta.scrollTop = ta.scrollHeight;
+      var ta = $("output"); ta.scrollTop = ta.scrollHeight;
     }
 
-    let regenScheduled = false;
+    var regenScheduled = false;
     function scheduleAutoRegenerate(){
       if (regenScheduled) return;
       regenScheduled = true;
-      requestAnimationFrame(() => {
+      requestAnimationFrame(function(){
         regenScheduled = false;
         autoRegenerate();
       });
     }
 
-    // ===== 等 DOM 完成再初始化（避免元素尚未就緒導致 chips 沒出現） =====
-    window.addEventListener('DOMContentLoaded', () => {
-      // 初始化 UI 與事件
-      $("visitDate").addEventListener("input", e => { state.visitDate = e.target.value; });
+    // 初始化在 DOMContentLoaded 之後
+    window.addEventListener('DOMContentLoaded', function(){
+      $("visitDate").addEventListener("input", function(e){ state.visitDate = e.target.value; });
       renderChips("parties", VISIT_PARTIES, state.parties);
       renderSegment("awareness", AWARENESS, state.awareness);
       renderSegment("hearing", HEARING, state.hearing);
@@ -472,57 +451,52 @@ ${main} ${extra}
       renderChips("aids", WALK_AID, state.aids);
       renderSegment("adl", ADL_LEVEL, state.adl);
 
-      $("noDisease").addEventListener("change", e => {
+      $("noDisease").addEventListener("change", function(e){
         state.noDisease = e.target.checked;
         $("diseases").style.opacity = state.noDisease ? 0.4 : 1;
         $("diseases").style.pointerEvents = state.noDisease ? "none" : "auto";
         $("hospitalRow").style.display = state.noDisease ? "none" : "block";
         if(state.noDisease){ state.diseases.clear(); state.hospitals.clear(); }
       });
-      $("useAid").addEventListener("change", e => {
+      $("useAid").addEventListener("change", function(e){
         state.useAid = e.target.checked;
         $("useAidLabel").textContent = state.useAid ? "使用" : "未使用";
-        const aidsDiv = $("aids");
+        var aidsDiv = $("aids");
         aidsDiv.style.display = state.useAid ? "flex" : "none";
         if(!state.useAid) state.aids.clear();
       });
 
       renderChips("needs", NEEDS, state.needs);
-      $("needsNote").addEventListener("input", e=> state.needsNote = e.target.value);
+      $("needsNote").addEventListener("input", function(e){ state.needsNote = e.target.value; });
 
       renderChips("goals", GOALS, state.goals);
-      $("goalsNote").addEventListener("input", e=> state.goalsNote = e.target.value);
+      $("goalsNote").addEventListener("input", function(e){ state.goalsNote = e.target.value; });
 
       renderChips("services", SERVICES, state.services);
-      $("serviceSched").addEventListener("input", e=> state.serviceSched = e.target.value);
-      $("servicesNote").addEventListener("input", e=> state.servicesNote = e.target.value);
+      $("serviceSched").addEventListener("input", function(e){ state.serviceSched = e.target.value; });
+      $("servicesNote").addEventListener("input", function(e){ state.servicesNote = e.target.value; });
 
       renderChips("education", EDU_TOPICS, state.education);
-      $("educationNote").addEventListener("input", e=> state.educationNote = e.target.value);
+      $("educationNote").addEventListener("input", function(e){ state.educationNote = e.target.value; });
 
       renderSegment("followType", FOLLOW_TYPES, state.followType);
-      $("nextDate").addEventListener("input", e=> state.nextDate = e.target.value);
-      $("followOwner").addEventListener("input", e=> state.followOwner = e.target.value);
-      $("followNote").addEventListener("input", e=> state.followNote = e.target.value);
+      $("nextDate").addEventListener("input", function(e){ state.nextDate = e.target.value; });
+      $("followOwner").addEventListener("input", function(e){ state.followOwner = e.target.value; });
+      $("followNote").addEventListener("input", function(e){ state.followNote = e.target.value; });
 
-      // 綁定自動產生（不在載入時觸發）
-      const leftCard = document.querySelectorAll('.grid .card')[0];
+      var leftCard = document.querySelectorAll('.grid .card')[0];
       if(leftCard){
         leftCard.addEventListener('input', scheduleAutoRegenerate);
         leftCard.addEventListener('change', scheduleAutoRegenerate);
       }
-      // ⚠️ 不自動產生，等待使用者第一次操作
-    });
 
-    // 右側按鈕
-    $("copyBtn").addEventListener("click", async () => {
-      try{
-        await navigator.clipboard.writeText($("output").value);
-        const btn = $("copyBtn"); const old = btn.textContent;
-        btn.textContent = "已複製"; setTimeout(()=>btn.textContent=old, 1200);
-      }catch{ alert("無法複製，請手動選取文字。"); }
+      $("copyBtn").addEventListener("click", function(){
+        navigator.clipboard.writeText($("output").value).then(function(){
+          var btn = $("copyBtn"); var old = btn.textContent; btn.textContent = "已複製"; setTimeout(function(){ btn.textContent = old; }, 1200);
+        }).catch(function(){ alert("無法複製，請手動選取文字。"); });
+      });
+      $("clearBtn").addEventListener("click", function(){ $("output").value=""; });
     });
-    $("clearBtn").addEventListener("click", ()=>{ $("output").value=""; });
   </script>
 </body>
 </html>
