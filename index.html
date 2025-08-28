@@ -4,8 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>照顧計畫敘述產生器（多段落／可編輯）</title>
-  <!-- 避免 favicon 404 -->
-  <link rel="icon" href="data:,">
+  <link rel="icon" href="data:,"><!-- 避免 favicon 404 -->
   <style>
     :root{ --ink:#0f172a; --muted:#64748b; --line:#e2e8f0; --bg:#f8fafc; }
     body{ font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,"Noto Sans","Apple Color Emoji","Segoe UI Emoji"; margin:0; background:var(--bg); color:#0b1220; }
@@ -19,15 +18,11 @@
     .card .body{ padding:16px; }
     .row{ margin-bottom:12px; }
     label.block{ display:block; font-size:14px; color:#334155; margin-bottom:6px; }
-    input[type="date"],input[type="text"],select,textarea{ width:100%; padding:10px 12px; border-radius:10px; border:1px solid #cbd5e1; background:#fff; box-sizing:border-box; }
+    input[type="date"],input[type="text"],textarea{ width:100%; padding:10px 12px; border-radius:10px; border:1px solid #cbd5e1; background:#fff; box-sizing:border-box; }
     textarea{ min-height:120px; font-size:15px; }
     .chips{ display:flex; gap:8px; flex-wrap:wrap; }
     .chip{ display:inline-flex; align-items:center; gap:8px; border:1px solid #cbd5e1; background:#f8fafc; padding:8px 10px; border-radius:12px; cursor:pointer; user-select:none; }
     .chip input{ transform:scale(1.1); }
-    .seg{ display:flex; gap:8px; flex-wrap:wrap; }
-    .seg input{ display:none; }
-    .seg label{ border:1px solid #cbd5e1; padding:8px 12px; border-radius:12px; cursor:pointer; background:#f8fafc; }
-    .seg input:checked + label{ background:var(--ink); color:#fff; border-color:var(--ink); }
     .small{ font-size:12px; color:#64748b; }
     .flex{ display:flex; align-items:center; gap:10px; }
     .btn{ padding:10px 14px; border-radius:10px; border:1px solid var(--ink); background:var(--ink); color:#fff; cursor:pointer; }
@@ -49,7 +44,7 @@
 <body>
   <div class="container">
     <h1>照顧計畫敘述產生器（多段落／可編輯）</h1>
-    <p class="lead">左側勾選或輸入會自動更新右側文字（此版本：首次開啟先產生第1段）。</p>
+    <p class="lead">左側勾選或輸入會自動更新右側文字（首次開啟預設產生第1段）。</p>
 
     <div class="grid">
       <!-- 左側 -->
@@ -76,10 +71,10 @@
             </div>
 
             <div class="row"><label class="block">受訪對象（可複選）</label><div id="parties" class="chips"></div></div>
-            <div class="row"><label class="block">意識</label><div class="seg" id="awareness"></div></div>
-            <div class="row"><label class="block">聽力</label><div class="seg" id="hearing"></div></div>
-            <div class="row"><label class="block">認知功能</label><div class="seg" id="cognition"></div></div>
-            <div class="row"><label class="block">是否能切題對談</label><div class="seg" id="onTopic"></div></div>
+            <div class="row"><label class="block">意識（複選）</label><div id="awareness" class="chips"></div></div>
+            <div class="row"><label class="block">聽力（複選）</label><div id="hearing" class="chips"></div></div>
+            <div class="row"><label class="block">認知功能（複選）</label><div id="cognition" class="chips"></div></div>
+            <div class="row"><label class="block">是否能切題對談（複選）</label><div id="onTopic" class="chips"></div></div>
 
             <div class="row">
               <label class="block">疾病史</label>
@@ -91,7 +86,7 @@
               </div>
             </div>
 
-            <div class="row"><label class="block">步態</label><div class="seg" id="gait"></div></div>
+            <div class="row"><label class="block">步態（複選）</label><div id="gait" class="chips"></div></div>
 
             <div class="row">
               <label class="block">是否使用輔具</label>
@@ -99,7 +94,7 @@
               <div id="aids" class="chips" style="margin-top:6px; display:none;"></div>
             </div>
 
-            <div class="row"><label class="block">日常生活自理程度</label><div class="seg" id="adl"></div></div>
+            <div class="row"><label class="block">日常生活自理程度（複選）</label><div id="adl" class="chips"></div></div>
           </details>
 
           <details>
@@ -131,14 +126,14 @@
             <summary>（第6段）追蹤與回訪</summary>
             <div class="twocol">
               <div class="row"><label class="block">下次追蹤日期（西元）</label><input id="nextDate" type="date"></div>
-              <div class="row"><label class="block">追蹤方式</label><div class="seg" id="followType"></div></div>
+              <div class="row"><label class="block">追蹤方式（複選）</label><div id="followType" class="chips"></div></div>
             </div>
             <div class="row"><label class="block">負責人/單位</label><input id="followOwner" type="text" placeholder="例：個管員王小華 / 中心名"></div>
             <div class="row"><label class="block">備註</label><textarea id="followNote" placeholder="其它安排或注意事項..."></textarea></div>
           </details>
 
           <div class="divider"></div>
-          <div class="muted">說明：左側變更會自動更新右側被勾選的段落。</div>
+          <div class="muted">說明：左側變更會自動更新右側被勾選的段落；某欄若無勾選則敘述省略。</div>
         </div>
       </div>
 
@@ -198,84 +193,89 @@
         label.appendChild(input); label.appendChild(document.createTextNode(txt)); box.appendChild(label);
       });
     }
-    function renderSegment(containerId, list, state){
-      var box = $(containerId); if(!box) return; box.innerHTML = "";
-      list.forEach(function(txt){
-        var id = containerId + "-" + txt;
-        var input = document.createElement("input"); input.type = "radio"; input.name = containerId; input.id = id;
-        input.checked = (state.value===txt);
-        input.addEventListener("change", function(){ state.value = txt; });
-        var label = document.createElement("label"); label.htmlFor = id; label.textContent = txt;
-        box.appendChild(input); box.appendChild(label);
-      });
-    }
     function chipsToList(set){ return set.size? Array.from(set).join("、") : ""; }
 
-    /* ===== 狀態 ===== */
+    /* ===== 狀態（全部複選 Set） ===== */
     var state = {
       visitDate:"", parties:new Set(["個案"]),
-      awareness:{value:"清楚"}, hearing:{value:"正常"}, cognition:{value:"正常"}, onTopic:{value:"能夠"},
+      awareness:new Set(), hearing:new Set(), cognition:new Set(), onTopic:new Set(),
       noDisease:false, diseases:new Set(), hospitals:new Set(),
-      gait:{value:"穩健"}, useAid:false, aids:new Set(), adl:{value:"可自理"},
+      gait:new Set(), useAid:false, aids:new Set(), adl:new Set(),
       needs:new Set(), needsNote:"", goals:new Set(), goalsNote:"",
       services:new Set(), serviceSched:"", servicesNote:"",
       education:new Set(), educationNote:"",
-      nextDate:"", followType:{value:"電話追蹤"}, followOwner:"", followNote:""
+      nextDate:"", followType:new Set(), followOwner:"", followNote:""
     };
 
-    /* ===== 段落產生器（不出現【】或（）） ===== */
+    /* ===== 段落產生器（無勾選即省略該句） ===== */
     function genSection1(){
       var rocDate = toROC(state.visitDate);
       var parties = state.parties.size ? Array.from(state.parties).join("、") : "個案";
-      var diseaseFinal = "無疾病史";
-      if(!state.noDisease && state.diseases.size){
-        var dis = Array.from(state.diseases).join(" / ");
-        var hos = state.hospitals.size ? "，規律於" + Array.from(state.hospitals).join("、") + "追蹤" : "";
-        diseaseFinal = "有" + dis + "疾病史" + hos;
-      }
-      var walking = state.useAid ? ("行走使用" + (state.aids.size? Array.from(state.aids).join("、") : "助行器、拐杖、輪椅")) : "行走未使用輔具";
-      var adl = "基本日常生活可自理";
-      if(state.adl.value === "部分需協助（如廁/沐浴）") adl = "基本日常生活部分（如廁/沐浴）需協助";
-      if(state.adl.value === "完全無法自理") adl = "基本日常生活完全無法自理";
 
-      var s = "於" + rocDate + "訪視" + parties + "，個案意識" + state.awareness.value +
-              "，聽力" + state.hearing.value + "，認知功能" + state.cognition.value +
-              "，" + state.onTopic.value + "切題對談，" + diseaseFinal +
-              "；步態" + state.gait.value + "，" + walking + "；" + adl + "。";
-      return "【第1段：訪視摘要】\n" + s + "\n";
+      var bits = [];
+      if(state.awareness.size) bits.push("意識：" + chipsToList(state.awareness));
+      if(state.hearing.size)   bits.push("聽力：" + chipsToList(state.hearing));
+      if(state.cognition.size) bits.push("認知功能：" + chipsToList(state.cognition));
+      if(state.onTopic.size){
+        var talk = Array.from(state.onTopic).map(function(v){ return v + "切題對談"; }).join("、");
+        bits.push(talk);
+      }
+      if(state.noDisease){
+        bits.push("無疾病史");
+      }else if(state.diseases.size){
+        var dis = chipsToList(state.diseases);
+        var hos = state.hospitals.size ? "，規律於" + chipsToList(state.hospitals) + "追蹤" : "";
+        bits.push("有" + dis + "疾病史" + hos);
+      }
+      if(state.gait.size) bits.push("步態：" + chipsToList(state.gait));
+      if(state.useAid){
+        bits.push("輔具：" + (state.aids.size ? chipsToList(state.aids) : "助行器、拐杖、輪椅"));
+      }
+      if(state.adl.size) bits.push("日常生活自理：" + chipsToList(state.adl));
+
+      var sentence = "於" + rocDate + "訪視" + parties + (bits.length? "，" + bits.join("；") : "") + "。";
+      return "【第1段：訪視摘要】\n" + sentence + "\n";
     }
     function genSection2(){
       var list = chipsToList(state.needs), note = (state.needsNote||"").trim();
-      var main = list? ("主要需求/問題評估：" + list + "。") : "主要需求/問題評估：—。";
-      var extra = note? ("補充：" + note) : "";
-      return "【第2段：需求與問題評估】\n" + main + " " + extra + "\n";
+      var parts = [];
+      if(list) parts.push("主要需求/問題評估：" + list);
+      if(note) parts.push("補充：" + note);
+      if(!parts.length) return "【第2段：需求與問題評估】\n—\n";
+      return "【第2段：需求與問題評估】\n" + parts.join("；") + "。\n";
     }
     function genSection3(){
       var list = chipsToList(state.goals), note = (state.goalsNote||"").trim();
-      var main = list? ("照護目標：" + list + "。") : "照護目標：—。";
-      var extra = note? ("量化/補充：" + note) : "";
-      return "【第3段：照護目標】\n" + main + " " + extra + "\n";
+      var parts = [];
+      if(list) parts.push("照護目標：" + list);
+      if(note) parts.push("量化/補充：" + note);
+      if(!parts.length) return "【第3段：照護目標】\n—\n";
+      return "【第3段：照護目標】\n" + parts.join("；") + "。\n";
     }
     function genSection4(){
-      var list = chipsToList(state.services);
-      var sched = (state.serviceSched||"").trim(), note  = (state.servicesNote||"").trim();
-      var main = list? ("服務計畫：" + list + "。") : "服務計畫：—。";
-      var s1 = sched? ("時程/頻率：" + sched + "。") : "";
-      var s2 = note?  ("補充：" + note) : "";
-      return "【第4段：服務計畫】\n" + main + " " + s1 + " " + s2 + "\n";
+      var list = chipsToList(state.services), sched=(state.serviceSched||"").trim(), note=(state.servicesNote||"").trim();
+      var parts = [];
+      if(list)  parts.push("服務計畫：" + list);
+      if(sched) parts.push("時程/頻率：" + sched);
+      if(note)  parts.push("補充：" + note);
+      if(!parts.length) return "【第4段：服務計畫】\n—\n";
+      return "【第4段：服務計畫】\n" + parts.join("；") + "。\n";
     }
     function genSection5(){
-      var list = chipsToList(state.education), note = (state.educationNote||"").trim();
-      var main = list? ("風險與衛教：" + list + "。") : "風險與衛教：—。";
-      var extra = note? ("重點：" + note) : "";
-      return "【第5段：風險與衛教】\n" + main + " " + extra + "\n";
+      var list = chipsToList(state.education), note=(state.educationNote||"").trim();
+      var parts = [];
+      if(list) parts.push("風險與衛教：" + list);
+      if(note) parts.push("重點：" + note);
+      if(!parts.length) return "【第5段：風險與衛教】\n—\n";
+      return "【第5段：風險與衛教】\n" + parts.join("；") + "。\n";
     }
     function genSection6(){
-      var dateStr = state.nextDate? toROC(state.nextDate) : "____/__/__";
-      var who = (state.followOwner||"").trim(), note = (state.followNote||"").trim();
-      var main = "下次追蹤：" + dateStr + "，方式：" + state.followType.value + (who? "，負責：" + who : "") + "。";
-      var extra = note? ("備註：" + note) : "";
-      return "【第6段：追蹤與回訪】\n" + main + " " + extra + "\n";
+      var dateStr = state.nextDate ? toROC(state.nextDate) : "____/__/__";
+      var parts = ["下次追蹤：" + dateStr];
+      if(state.followType.size) parts.push("方式：" + chipsToList(state.followType));
+      var who = (state.followOwner||"").trim(); if(who) parts.push("負責：" + who);
+      var note = (state.followNote||"").trim(); if(note) parts.push("備註：" + note);
+      return "【第6段：追蹤與回訪】\n" + parts.join("，") + "。\n";
     }
 
     var generators = {1:genSection1,2:genSection2,3:genSection3,4:genSection4,5:genSection5,6:genSection6};
@@ -311,16 +311,16 @@
     window.addEventListener("DOMContentLoaded", function(){
       $("visitDate").addEventListener("input", function(e){ state.visitDate = e.target.value; });
 
-      renderChips("parties", VISIT_PARTIES, state.parties);
-      renderSegment("awareness", AWARENESS, state.awareness);
-      renderSegment("hearing", HEARING, state.hearing);
-      renderSegment("cognition", COGNITION, state.cognition);
-      renderSegment("onTopic", ON_TOPIC, state.onTopic);
-      renderChips("diseases", DISEASES, state.diseases);
-      renderChips("hospitals", HOSPITALS, state.hospitals); // 可複選
-      renderSegment("gait", GAIT, state.gait);
-      renderChips("aids", WALK_AID, state.aids);
-      renderSegment("adl", ADL_LEVEL, state.adl);
+      renderChips("parties",    VISIT_PARTIES, state.parties);
+      renderChips("awareness",  AWARENESS,     state.awareness);
+      renderChips("hearing",    HEARING,       state.hearing);
+      renderChips("cognition",  COGNITION,     state.cognition);
+      renderChips("onTopic",    ON_TOPIC,      state.onTopic);
+      renderChips("diseases",   DISEASES,      state.diseases);
+      renderChips("hospitals",  HOSPITALS,     state.hospitals); // 可複選
+      renderChips("gait",       GAIT,          state.gait);
+      renderChips("aids",       WALK_AID,      state.aids);
+      renderChips("adl",        ADL_LEVEL,     state.adl);
 
       $("noDisease").addEventListener("change", function(e){
         state.noDisease = e.target.checked;
@@ -336,29 +336,26 @@
         if(!state.useAid) state.aids.clear();
       });
 
-      renderChips("needs", NEEDS, state.needs);
+      renderChips("needs",      NEEDS,         state.needs);
       $("needsNote").addEventListener("input", function(e){ state.needsNote = e.target.value; });
 
-      renderChips("goals", GOALS, state.goals);
+      renderChips("goals",      GOALS,         state.goals);
       $("goalsNote").addEventListener("input", function(e){ state.goalsNote = e.target.value; });
 
-      renderChips("services", SERVICES, state.services);
+      renderChips("services",   SERVICES,      state.services);
       $("serviceSched").addEventListener("input", function(e){ state.serviceSched = e.target.value; });
-      $("servicesNote").addEventListener("input", function(e){ state.servicesNote = e.target.value; });
+      $("servicesNote").addEventListener("input",  function(e){ state.servicesNote = e.target.value; });
 
-      renderChips("education", EDU_TOPICS, state.education);
+      renderChips("education",  EDU_TOPICS,    state.education);
       $("educationNote").addEventListener("input", function(e){ state.educationNote = e.target.value; });
 
-      renderSegment("followType", FOLLOW_TYPES, state.followType);
-      $("nextDate").addEventListener("input", function(e){ state.nextDate = e.target.value; });
-      $("followOwner").addEventListener("input", function(e){ state.followOwner = e.target.value; });
+      renderChips("followType", FOLLOW_TYPES,  state.followType);
+      $("nextDate").addEventListener("input",   function(e){ state.nextDate = e.target.value; });
+      $("followOwner").addEventListener("input",function(e){ state.followOwner = e.target.value; });
       $("followNote").addEventListener("input", function(e){ state.followNote = e.target.value; });
 
-      var leftCard = document.querySelectorAll(".grid .card")[0];
-      if(leftCard){
-        leftCard.addEventListener("input", scheduleAutoRegenerate);
-        leftCard.addEventListener("change", scheduleAutoRegenerate);
-      }
+      var left = document.querySelectorAll(".grid .card")[0];
+      if(left){ left.addEventListener("input", scheduleAutoRegenerate); left.addEventListener("change", scheduleAutoRegenerate); }
 
       $("copyBtn").addEventListener("click", function(){
         navigator.clipboard.writeText($("output").value).then(function(){
