@@ -30,7 +30,6 @@
     .flex { display:flex; align-items:center; gap:10px; }
     .btn { padding:10px 14px; border-radius:10px; border:1px solid var(--ink); background:var(--ink); color:#fff; cursor:pointer; }
     .btn.secondary { background:#f1f5f9; color:var(--ink); border-color:#cbd5e1; }
-    .btn.row { width:100%; }
     .muted { color:var(--muted); font-size:12px; }
     .sectitle { font-weight:600; font-size:14px; margin-top:10px; margin-bottom:6px;}
     .section-list label { display:flex; align-items:center; gap:8px; margin:6px 0; }
@@ -83,23 +82,23 @@
             </div>
 
             <div class="row">
-                <label class="block">意識</label>
-                <div class="seg" id="awareness"></div>
+              <label class="block">意識</label>
+              <div class="seg" id="awareness"></div>
             </div>
 
             <div class="row">
-                <label class="block">聽力</label>
-                <div class="seg" id="hearing"></div>
+              <label class="block">聽力</label>
+              <div class="seg" id="hearing"></div>
             </div>
 
             <div class="row">
-                <label class="block">認知功能</label>
-                <div class="seg" id="cognition"></div>
+              <label class="block">認知功能</label>
+              <div class="seg" id="cognition"></div>
             </div>
 
             <div class="row">
-                <label class="block">是否能切題對談</label>
-                <div class="seg" id="onTopic"></div>
+              <label class="block">是否能切題對談</label>
+              <div class="seg" id="onTopic"></div>
             </div>
 
             <div class="row">
@@ -110,29 +109,29 @@
               </div>
               <div id="diseases" class="chips" style="margin-top:6px;"></div>
               <div class="row" id="hospitalRow" style="margin-top:8px;">
-                <label class="block">追蹤醫院</label>
-                <div class="seg" id="hospitals"></div>
+                <label class="block">追蹤醫院（可複選）</label>
+                <div id="hospitals" class="chips"></div>
               </div>
             </div>
 
             <div class="row">
-                <label class="block">步態</label>
-                <div class="seg" id="gait"></div>
+              <label class="block">步態</label>
+              <div class="seg" id="gait"></div>
             </div>
 
             <div class="row">
-                <label class="block">是否使用輔具</label>
-                <div class="flex">
-                  <input id="useAid" type="checkbox"/>
-                  <label for="useAid" class="small"><span id="useAidLabel">未使用</span></label>
-                </div>
-                <div id="aids" class="chips" style="margin-top:6px; display:none;"></div>
+              <label class="block">是否使用輔具</label>
+              <div class="flex">
+                <input id="useAid" type="checkbox"/>
+                <label for="useAid" class="small"><span id="useAidLabel">未使用</span></label>
+              </div>
+              <div id="aids" class="chips" style="margin-top:6px; display:none;"></div>
             </div>
-          
-          <div class="row">
+
+            <div class="row">
               <label class="block">日常生活自理程度</label>
               <div class="seg" id="adl"></div>
-          </div>
+            </div>
           </details>
 
           <!-- 第2段 -->
@@ -215,8 +214,8 @@
           </details>
 
           <div class="divider"></div>
-          <button id="gen" class="btn row">插入 / 更新所選段落（備用）</button>
-          <div class="muted" style="margin-top:6px;">提示：現在會自動更新；按此鈕只是備用，可強制刷新選取段落。</div>
+          <!-- 已移除「插入」按鈕 -->
+          <div class="muted" style="margin-top:6px;">說明：現在左側變更會自動更新右側被勾選的段落。</div>
         </div>
       </div>
 
@@ -231,21 +230,21 @@
         </h2>
         <div class="body">
           <textarea id="output" placeholder="左側變更會自動更新到這裡；你也可以在此手動微調文字。"></textarea>
-          <div class="muted">系統以段落標籤合併（例如【第1段：訪視摘要】）。若某段落仍勾選，手動改寫後再變更左側選項會以最新表單覆蓋該段。</div>
+          <div class="muted">系統以段落標籤合併（例如【第1段：訪視摘要】）。若某段仍勾選，手動改寫後再變更左側選項會以最新表單覆蓋該段。</div>
         </div>
       </div>
     </div>
   </div>
 
   <script>
-    // ===== 常數選項（可自由增修） =====
+    // ===== 常數選項 =====
     const VISIT_PARTIES = ["個案","案長女","案次女","配偶","主要照顧者"];
     const AWARENESS = ["清楚","模糊"];
     const HEARING   = ["正常","右耳重聽","左耳重聽","雙耳重聽"];
     const COGNITION = ["正常","欠佳"];
     const ON_TOPIC  = ["能夠","無法"];
     const DISEASES  = ["高血壓","糖尿病","中風","心臟病","腎臟病"];
-    const HOSPITALS = ["汐止國泰","內湖三總","忠孝醫院"];
+    const HOSPITALS = ["汐止國泰","內湖三總","忠孝醫院"]; // 可複選
     const GAIT      = ["穩健","不穩"];
     const WALK_AID  = ["助行器","拐杖","輪椅"];
     const ADL_LEVEL = ["可自理","部分需協助（如廁/沐浴）","完全無法自理"];
@@ -267,7 +266,7 @@
       const day = String(d.getDate()).padStart(2,"0");
       return `${y}/${m}/${day}`;
     }
-    function renderChips(containerId, list, stateArr){
+    function renderChips(containerId, list, stateSet){
       const box = $(containerId);
       box.innerHTML = "";
       list.forEach(txt => {
@@ -275,9 +274,9 @@
         label.className = "chip";
         const input = document.createElement("input");
         input.type = "checkbox";
-        input.checked = stateArr.has(txt);
+        input.checked = stateSet.has(txt);
         input.addEventListener("change", () => {
-          if(input.checked) stateArr.add(txt); else stateArr.delete(txt);
+          if(input.checked) stateSet.add(txt); else stateSet.delete(txt);
         });
         label.appendChild(input);
         label.appendChild(document.createTextNode(txt));
@@ -310,7 +309,7 @@
       onTopic:   {value:"能夠"},
       noDisease: false,
       diseases:  new Set(),
-      hospital:  {value:"汐止國泰"},
+      hospitals: new Set(),         // 改為可複選
       gait:      {value:"穩健"},
       useAid:    false,
       aids:      new Set(),
@@ -340,7 +339,7 @@
     renderSegment("cognition", COGNITION, state.cognition);
     renderSegment("onTopic", ON_TOPIC, state.onTopic);
     renderChips("diseases", DISEASES, state.diseases);
-    renderSegment("hospitals", HOSPITALS, state.hospital);
+    renderChips("hospitals", HOSPITALS, state.hospitals);   // 可複選
     renderSegment("gait", GAIT, state.gait);
     renderChips("aids", WALK_AID, state.aids);
     renderSegment("adl", ADL_LEVEL, state.adl);
@@ -350,7 +349,10 @@
       $("diseases").style.opacity = state.noDisease ? 0.4 : 1;
       $("diseases").style.pointerEvents = state.noDisease ? "none" : "auto";
       $("hospitalRow").style.display = state.noDisease ? "none" : "block";
-      if(state.noDisease) state.diseases.clear();
+      if(state.noDisease){
+        state.diseases.clear();
+        state.hospitals.clear();
+      }
     });
     $("useAid").addEventListener("change", e => {
       state.useAid = e.target.checked;
@@ -383,15 +385,24 @@
     function genSection1(){
       const rocDate = toROC(state.visitDate);
       const parties = (state.parties.size? Array.from(state.parties).join("、") : "個案");
-      let diseasePhrase = "無疾病史";
+
+      // 疾病敘述
+      let diseaseFinal = "無疾病史";
       if(!state.noDisease && state.diseases.size){
-        diseasePhrase = "有（" + Array.from(state.diseases).join("/ ") + "）疾病史";
+        const dis = Array.from(state.diseases).join("/ ");
+        const hos = state.hospitals.size ? `，規律於${Array.from(state.hospitals).join("、")}追蹤` : "";
+        diseaseFinal = `有（${dis}）疾病史${hos}`;
       }
-      const diseaseFinal = (diseasePhrase==="無疾病史") ? "無疾病史" : (diseasePhrase + "，規律於" + state.hospital.value + "追蹤");
-      let walkingPhrase = state.useAid ? ("行走使用（" + (state.aids.size? Array.from(state.aids).join("、") : "助行器、拐杖、輪椅") + "）") : "行走未使用輔具";
+
+      // 行走/ADL
+      const walkingPhrase = state.useAid
+        ? `行走使用（${ state.aids.size? Array.from(state.aids).join("、") : "助行器、拐杖、輪椅" }）`
+        : "行走未使用輔具";
+
       let adlPhrase = "基本日常生活可自理";
       if(state.adl.value==="部分需協助（如廁/沐浴）") adlPhrase = "基本日常生活部分（如廁/沐浴）需協助";
       if(state.adl.value==="完全無法自理") adlPhrase = "基本日常生活完全無法自理";
+
       const narrative = `於${rocDate}訪視【${parties}】，個案意識${state.awareness.value}，聽力${state.hearing.value}，認知功能${state.cognition.value}，${state.onTopic.value}切題對談，${diseaseFinal}；步態${state.gait.value}，${walkingPhrase}；${adlPhrase}。`;
       return `【第1段：訪視摘要】\n${narrative}\n`;
     }
@@ -438,49 +449,43 @@
 
     function replaceSections(currentText, selected){
       let text = currentText || "";
-      // 移除既有的相同段落
+      // 先把相同段落「全部」移除（gm）
       selected.forEach(n => {
         const tag = `【第${n}段：`;
-        const re = new RegExp(`^${tag}[^]*?(?=^【第\\d+段：|\\Z)`, "m");
+        const re = new RegExp(`^${tag}[^]*?(?=^【第\\d+段：|\\Z)`, "gm");
         text = text.replace(re, "");
       });
-      // 產出新增內容並附加到最後
+      // 重新附加新的段落內容
       const parts = selected.map(n => generators[n]());
       text = (text.trim()? text.trim() + "\n\n" : "") + parts.join("\n");
       return text.trim() + "\n";
     }
 
-    // 備用按鈕
-    $("gen").addEventListener("click", () => {
-      const selected = [];
-      for(let i=1;i<=6;i++){ if($("sec"+i).checked) selected.push(i); }
-      if(selected.length===0){ alert("請至少勾選一個段落。"); return; }
-      const cur = $("output").value;
-      $("output").value = replaceSections(cur, selected);
-      const ta = $("output"); ta.scrollTop = ta.scrollHeight;
-    });
-
-    // === 自動即時生成：左側任一欄位變更即更新輸出 ===
-    const cards = document.querySelectorAll('.grid .card');
-    const leftCard = cards && cards.length ? cards[0] : null;
-
+    // === 自動即時生成（去彈跳，避免重複） ===
+    const leftCard = document.querySelectorAll('.grid .card')[0];
     function getSelectedSections(){
-      const arr = []; for(let i=1;i<=6;i++){ if($("sec"+i) && $("sec"+i).checked) arr.push(i); }
+      const arr = []; for(let i=1;i<=6;i++){ if($("sec"+i)?.checked) arr.push(i); }
       return arr;
     }
     function autoRegenerate(){
       const selected = getSelectedSections();
-      if(selected.length===0) return; // 沒勾段落就不動
+      if(selected.length===0) return;
       const cur = $("output").value;
       $("output").value = replaceSections(cur, selected);
       const ta = $("output"); ta.scrollTop = ta.scrollHeight;
     }
-
-    if(leftCard){
-      leftCard.addEventListener('input', autoRegenerate);
-      leftCard.addEventListener('change', autoRegenerate);
+    let regenScheduled = false;
+    function scheduleAutoRegenerate(){
+      if (regenScheduled) return;
+      regenScheduled = true;
+      requestAnimationFrame(() => {
+        regenScheduled = false;
+        autoRegenerate();
+      });
     }
-    // 初次載入，若已勾選段落，先產出一次
+    if(leftCard){
+      leftCard.addEventListener('input', scheduleAutoRegenerate); // 只用 input，避免 change 重複
+    }
     window.addEventListener('DOMContentLoaded', autoRegenerate);
 
     // 右側操作
