@@ -321,7 +321,7 @@
         if(hasAlone && others.length===0)       more.push("個案獨居");
         else if(others.length)                  more.push("個案與"+others.join("、")+"同住");
       }
-      if(state.housing.size) more.push("住所類型："+chipsToList(state.housing));
+      if(state.housing.size) more.push("案家住所為"+chipsToList(state.housing));
       if(state.outdoor.size){
         const desc = Array.from(state.outdoor).map(v=> OUTDOOR_MAP[v]||v).join("、");
         more.push(desc);
@@ -332,8 +332,8 @@
       }
       if(state.demands.size) more.push("家屬主述需求："+chipsToList(state.demands));
 
-      const para2 = more.length? " " + more.join("；") + "。" : "";
-      return para1 + para2;
+      const para2 = more.length? ("\n\n"+more.join("；")+"。") : "";
+      return [para1, para2].join("");
     }
 
     function gen2(){
