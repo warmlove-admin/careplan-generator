@@ -36,7 +36,6 @@
     .right-sticky { position: sticky; top: 12px; align-self: start; }
     @media(max-width:980px){ .right-sticky{ top: 8px; } }
     .hint { margin-top:4px; color:#64748b; font-size:12px; }
-
     .btn { padding:10px 14px; border-radius:10px; border:1px solid var(--ink); background:var(--ink); color:#fff; cursor:pointer; }
     .btn.secondary { background:#f1f5f9; color:var(--ink); border-color:#cbd5e1; }
   </style>
@@ -71,11 +70,7 @@
               <div class="muted">會自動轉民國格式，例如 2025-08-12 → 114/08/12</div>
             </div>
 
-            <div class="row">
-              <label class="block">受訪對象（可複選）</label>
-              <div id="parties" class="chips"></div>
-            </div>
-
+            <div class="row"><label class="block">受訪對象（可複選）</label><div id="parties" class="chips"></div></div>
             <div class="row"><label class="block">意識（複選）</label><div id="awareness" class="chips"></div></div>
             <div class="row"><label class="block">聽力（複選）</label><div id="hearing" class="chips"></div></div>
             <div class="row"><label class="block">認知功能（複選）</label><div id="cognition" class="chips"></div></div>
@@ -92,10 +87,7 @@
             </div>
 
             <!-- 皮膚與壓瘡 -->
-            <div class="row">
-              <label class="block">皮膚完整性（複選）</label>
-              <div id="skinIntegrity" class="chips"></div>
-            </div>
+            <div class="row"><label class="block">皮膚完整性（複選）</label><div id="skinIntegrity" class="chips"></div></div>
             <div class="row">
               <label class="block">壓瘡</label>
               <div class="chips"><label class="chip"><input id="hasBedsore" type="checkbox">有壓瘡</label></div>
@@ -138,17 +130,10 @@
           <!-- 第2段 -->
           <details>
             <summary>（第2段）需求與問題評估</summary>
-            <div class="row">
-              <label class="block">勾選問題（可複選）</label>
-              <div id="issues" class="chips"></div>
-            </div>
-            <div class="row">
-              <label class="block">補充說明</label>
-              <textarea id="needsNote" placeholder="例：近期跌倒兩次，夜間如廁不便；家屬照顧壓力增加等。"></textarea>
-            </div>
+            <div class="row"><label class="block">勾選問題（可複選）</label><div id="issues" class="chips"></div></div>
+            <div class="row"><label class="block">補充說明</label><textarea id="needsNote" placeholder="例：近期跌倒兩次，夜間如廁不便；家屬照顧壓力增加等。"></textarea></div>
           </details>
 
-          <!-- 其他段落（先保留） -->
           <details><summary>（第3段）照護目標</summary>
             <div class="row"><label class="block">目標（可複選）</label><div id="goals" class="chips"></div></div>
             <div class="row"><label class="block">補充/量化指標</label><textarea id="goalsNote" placeholder="例：一週內學會助行器正確使用；一個月內跌倒事件 0 件。"></textarea></div>
@@ -175,7 +160,7 @@
           </details>
 
           <div class="divider"></div>
-          <div class="muted">※ 勾選的段落才會覆蓋右側對應段落；未勾選則不輸出。</div>
+          <div class="muted">※ 勾選的段落才會輸出到右側；左側任何變更都會整頁重算。你也可以鎖定輸出或鎖定特定段落保留手改文字。</div>
         </div>
       </div>
 
@@ -183,14 +168,17 @@
       <div class="card right-sticky">
         <h2 style="display:flex;justify-content:space-between;align-items:center;padding-right:16px;">
           <span>自動產生敘述（可編輯）</span>
-          <div style="display:flex; gap:8px;">
+          <div style="display:flex; gap:8px; align-items:center;">
+            <label class="chip" title="鎖定後，左側變更不會覆蓋文字"><input id="lockAll" type="checkbox"> 鎖定輸出</label>
             <button id="clearBtn" class="btn secondary">清空</button>
             <button id="copyBtn" class="btn">複製文字</button>
           </div>
         </h2>
         <div class="body">
-          <textarea id="output" placeholder="左側變更會自動更新到這裡；你也可以在此手動微調文字。"></textarea>
-          <div class="muted">系統會以段落標籤合併（例如【第1段：訪視摘要】）。手動改寫後，左側再次變更會以最新表單覆蓋該段。</div>
+          <div class="sectitle">鎖定段落（可複選）</div>
+          <div id="lockList" class="chips" style="margin-bottom:8px;"></div>
+          <textarea id="output" placeholder="左側變更會自動更新到這裡；你也可以在此手動微調。若開啟『鎖定輸出』或勾選『鎖定段落』，右側文字不會被覆蓋。"></textarea>
+          <div class="muted">鎖定段落時，即使取消左側段落勾選也不會移除；解鎖後再以左側為準。</div>
         </div>
       </div>
     </div>
@@ -253,11 +241,23 @@
       list.forEach(txt=>{
         const label=document.createElement("label"); label.className="chip";
         const input=document.createElement("input"); input.type="checkbox"; input.checked=stateSet.has(txt);
-        input.addEventListener("change",()=>{ if(input.checked) stateSet.add(txt); else stateSet.delete(txt); scheduleAutoRegenerate();});
+        input.addEventListener("change",()=>{ if(input.checked) stateSet.add(txt); else stateSet.delete(txt); regenerateAll();});
         label.appendChild(input); label.appendChild(document.createTextNode(txt)); box.appendChild(label);
       });
     }
     function chipsToList(set){ return set.size? Array.from(set).join("、") : ""; }
+
+    // 解析右側文字 → 分段 map
+    function parseBlocks(text){
+      const map = {};
+      const re = /^【第(\d+)段：[^\n】]+】[\s\S]*?(?=^【第\d+段：|$)/gm;
+      let m;
+      while((m = re.exec(text)) !== null){
+        const idx = parseInt(m[1],10);
+        map[idx] = m[0].trimEnd();
+      }
+      return map;
+    }
 
     /* ===== 狀態 ===== */
     const state = {
@@ -277,11 +277,24 @@
       goals:new Set(), goalsNote:"",
       services:new Set(), serviceSched:"", servicesNote:"",
       education:new Set(), educationNote:"",
-      nextDate:"", followType:new Set(), followOwner:"", followNote:""
+      nextDate:"", followType:new Set(), followOwner:"", followNote:"",
+
+      // 鎖定
+      locked:new Set(), // set of numbers 1..6
     };
 
     /* ===== 段落產生器 ===== */
     function genSection1(){
+      const hasFirstHalf =
+        state.visitDate || state.parties.size>1 || state.awareness.size || state.hearing.size ||
+        state.cognition.size || state.onTopic.size || state.noDisease || state.diseases.size ||
+        state.skin.size || state.hasBedsore || state.gait.size || (state.useAid && state.aids.size) || state.adl.size;
+
+      const hasSecondHalf =
+        state.cohab.size || state.housing.size || state.outdoor.size || state.support.size || state.demands.size;
+
+      if(!hasFirstHalf && !hasSecondHalf) return "";
+
       const rocDate = toROC(state.visitDate);
       const parties = state.parties.size? Array.from(state.parties).join("、") : "個案";
 
@@ -293,7 +306,6 @@
         const talk = Array.from(state.onTopic).map(v=> v + "切題對談").join("、");
         bits.push(talk);
       }
-
       if(state.noDisease){
         bits.push("無疾病史");
       }else if(state.diseases.size){
@@ -301,32 +313,25 @@
         const hos = state.hospitals.size? "，規律於" + chipsToList(state.hospitals) + "追蹤" : "";
         bits.push("有" + dis + "疾病史" + hos);
       }
-
       if(state.skin.size) bits.push("個案皮膚" + chipsToList(state.skin));
-
       if(state.hasBedsore){
         bits.push("有壓瘡");
         if(state.bedsoreSites.size) bits.push("壓瘡部位" + chipsToList(state.bedsoreSites));
         const area = (state.bedsoreArea||"").trim(); if(area) bits.push("壓瘡面積約 " + area + " 公分");
       }
-
       if(state.gait.size) bits.push("步態" + chipsToList(state.gait));
       if(state.useAid && state.aids.size) bits.push("行動需使用" + chipsToList(state.aids));
       if(state.adl.size) bits.push("日常生活自理" + chipsToList(state.adl));
 
-      // 第二小段（同住/住所/外出/支持/主述）
-      const more = [];
+      const firstSentence  = "於" + rocDate + "訪視" + parties + (bits.length? "，" + bits.join("；") : "") + "。";
 
-      // 同住：若同時勾到「獨居」與其它成員，以「與成員同住」為準
+      // 第二小段（同住/住所/外出/支持/需求）
+      const more = [];
       if(state.cohab.size){
         const others = Array.from(state.cohab).filter(v => v !== "獨居");
-        if(others.length){
-          more.push("個案與" + others.join("、") + "同住");
-        }else if(state.cohab.has("獨居")){
-          more.push("個案獨居");
-        }
+        if(others.length){ more.push("個案與" + others.join("、") + "同住"); }
+        else if(state.cohab.has("獨居")){ more.push("個案獨居"); }
       }
-
       if(state.housing.size) more.push("案家住所為" + chipsToList(state.housing));
       if(state.outdoor.size){
         const texts = Array.from(state.outdoor).map(v=> OUTDOOR_MAP[v] || v);
@@ -338,14 +343,8 @@
       }
       if(state.demands.size) more.push("家屬主述有" + chipsToList(state.demands) + "需求");
 
-      // 若完全沒有任何輸入，不輸出第1段
-      const hasAny =
-        (state.visitDate && state.visitDate.trim()!=="") ||
-        state.parties.size>1 || bits.length>0 || more.length>0;
-      if(!hasAny) return "";
+      const secondSentence = more.length? "\n\n" + more.join("；") + "。" : "";
 
-      const firstSentence  = "於" + rocDate + "訪視" + parties + (bits.length? "，" + bits.join("；") : "") + "。";
-      const secondSentence = more.length? "\n" + more.join("；") + "。" : "";
       return "【第1段：訪視摘要】\n" + firstSentence + secondSentence + "\n";
     }
 
@@ -355,7 +354,7 @@
       const parts = [];
       if(list) parts.push("主要需求/問題評估：" + list);
       if(note) parts.push("補充：" + note);
-      if(!parts.length) return ""; // 空就不輸出
+      if(!parts.length) return "";
       return "【第2段：需求與問題評估】\n" + parts.join("；") + "。\n";
     }
 
@@ -388,53 +387,53 @@
 
     const generators = {1:genSection1,2:genSection2,3:genSection3,4:genSection4,5:genSection5,6:genSection6};
 
-    /* ===== 自動組裝 ===== */
-    function getSelectedSections(){ const arr=[]; for(let i=1;i<=6;i++){ const el=$("sec"+i); if(el && el.checked) arr.push(i); } return arr; }
-
-    function replaceSections(currentText, selected){
-      let text = currentText || "";
-
-      // 先移除既有的相同段落
-      selected.forEach(n=>{
-        const tag = `【第${n}段：`;
-        const reLabeled = new RegExp("^" + tag + "[\\s\\S]*?(?=^【第\\d+段：|\\s*$)", "gm");
-        text = text.replace(reLabeled, "");
-        if(n===1){
-          const reOld = /^於[\s\S]*?(?=^【第\d+段：|\s*$)/gm;
-          text = text.replace(reOld,"");
-        }
-      });
-
-      // 清掉舊版殘留的「第二小段」散落行（避免把【第1段】往下擠）
-      text = text.replace(/^(個案(?:獨居|與.*同住)|案家住所為.*|個案(?:可自行外出|他人陪同下可外出|外出困難(?:，需大量協助)?|外出須使用爬梯機)|評估.*|家屬主述有.*)。\s*$/gm, "");
-      // 清掉孤立破折號
-      text = text.replace(/^\s*[—–-]+\s*$/gm, "");
-
-      // 忽略空字串段落
-      const parts = selected.map(n => generators[n]()).filter(Boolean);
-
-      const base = text.trim();
-      const out = (base ? base + "\n\n" : "") + parts.join("\n");
-      return out ? out.trim() + "\n" : "";
+    /* ===== 鎖定段落 UI ===== */
+    function renderLockChips(){
+      const box = $("lockList"); box.innerHTML="";
+      for(let i=1;i<=6;i++){
+        const label=document.createElement("label"); label.className="chip";
+        const input=document.createElement("input"); input.type="checkbox"; input.checked=state.locked.has(i);
+        input.addEventListener("change",()=>{ if(input.checked) state.locked.add(i); else state.locked.delete(i); regenerateAll();});
+        label.appendChild(input); label.appendChild(document.createTextNode("第"+i+"段"));
+        box.appendChild(label);
+      }
     }
 
-    function autoRegenerate(){
-      const selected = getSelectedSections();
-      if(!selected.length) return;
-      const cur = $("output").value;
-      $("output").value = replaceSections(cur, selected);
+    /* ===== 整頁重算（尊重鎖定） ===== */
+    function selectedSections(){ const a=[]; for(let i=1;i<=6;i++){ const el=$("sec"+i); if(el && el.checked) a.push(i); } return a; }
+
+    function regenerateAll(){
+      // 全鎖定：完全不覆蓋
+      if($("lockAll").checked) return;
+
+      // 新產生的各段
+      const fresh = {};
+      for(let i=1;i<=6;i++){ fresh[i]=generators[i](); }
+
+      // 目前右側文字 → 抓現有各段（保留手改）
+      const currentText = $("output").value || "";
+      const existing = parseBlocks(currentText);
+
+      // 選擇哪些段落要輸出（未勾選就不輸出；但若被鎖且現有有內容，仍保留）
+      const sel = new Set(selectedSections());
+
+      const finalBlocks = [];
+      for(let i=1;i<=6;i++){
+        if(state.locked.has(i)){          // 鎖定：優先使用現有，如果現有沒有、且有勾選，才用新產出
+          if(existing[i]) finalBlocks.push(existing[i]);
+          else if(sel.has(i) && fresh[i]) finalBlocks.push(fresh[i]);
+        }else{                             // 未鎖：完全以左側為準
+          if(sel.has(i) && fresh[i]) finalBlocks.push(fresh[i]);
+        }
+      }
+
+      $("output").value = finalBlocks.join("\n").trim() + (finalBlocks.length? "\n" : "");
       $("output").scrollTop = $("output").scrollHeight;
     }
-    let regenScheduled=false;
-    function scheduleAutoRegenerate(){
-      if(regenScheduled) return;
-      regenScheduled=true;
-      requestAnimationFrame(()=>{ regenScheduled=false; autoRegenerate(); });
-    }
 
-    /* ===== 初始化 UI ===== */
+    /* ===== 初始化 ===== */
     window.addEventListener("DOMContentLoaded", ()=>{
-      $("visitDate").addEventListener("input", e=>{ state.visitDate=e.target.value; scheduleAutoRegenerate(); });
+      $("visitDate").addEventListener("input", e=>{ state.visitDate=e.target.value; regenerateAll(); });
 
       renderChips("parties",    VISIT_PARTIES, state.parties);
       renderChips("awareness",  AWARENESS,     state.awareness);
@@ -470,9 +469,9 @@
         state.hasBedsore = e.target.checked;
         $("bedsoreBlock").style.display = state.hasBedsore? "block" : "none";
         if(!state.hasBedsore){ state.bedsoreSites.clear(); state.bedsoreArea=""; $("bedsoreArea").value=""; }
-        scheduleAutoRegenerate();
+        regenerateAll();
       });
-      $("bedsoreArea").addEventListener("input", e=>{ state.bedsoreArea = e.target.value; scheduleAutoRegenerate(); });
+      $("bedsoreArea").addEventListener("input", e=>{ state.bedsoreArea = e.target.value; regenerateAll(); });
 
       // 無疾病史
       $("noDisease").addEventListener("change", e=>{
@@ -481,7 +480,7 @@
         $("diseases").style.pointerEvents = state.noDisease ? "none" : "auto";
         $("hospitalRow").style.display = state.noDisease ? "none" : "block";
         if(state.noDisease){ state.diseases.clear(); state.hospitals.clear(); }
-        scheduleAutoRegenerate();
+        regenerateAll();
       });
 
       // 輔具
@@ -490,41 +489,32 @@
         $("useAidLabel").textContent = state.useAid ? "使用" : "未使用";
         $("aids").style.display = state.useAid ? "flex" : "none";
         if(!state.useAid) state.aids.clear();
-        scheduleAutoRegenerate();
+        regenerateAll();
       });
 
       // 文字欄
-      $("needsNote").addEventListener("input", e=>{ state.needsNote = e.target.value; scheduleAutoRegenerate(); });
-      $("nextDate").addEventListener("input", e=>{ state.nextDate=e.target.value; scheduleAutoRegenerate(); });
-      $("followOwner").addEventListener("input", e=>{ state.followOwner=e.target.value; scheduleAutoRegenerate(); });
-      $("followNote").addEventListener("input", e=>{ state.followNote=e.target.value; scheduleAutoRegenerate(); });
+      $("needsNote").addEventListener("input", e=>{ state.needsNote = e.target.value; regenerateAll(); });
+      $("nextDate").addEventListener("input", e=>{ state.nextDate=e.target.value; regenerateAll(); });
+      $("followOwner").addEventListener("input", e=>{ state.followOwner=e.target.value; regenerateAll(); });
+      $("followNote").addEventListener("input", e=>{ state.followNote=e.target.value; regenerateAll(); });
 
-      // 段落勾選：若取消勾選，順便把該段從右側移除
+      // 段落勾選
       document.querySelectorAll(".section-list input[type=checkbox]").forEach(cb=>{
-        cb.addEventListener("change", ()=>{
-          const n = parseInt(cb.id.replace("sec",""),10);
-          if(!cb.checked){
-            const re = new RegExp("^【第"+n+"段：[\\s\\S]*?(?=^【第\\d+段：|\\s*$)","gm");
-            $("output").value = $("output").value
-              .replace(re,"")
-              .replace(/^(個案(?:獨居|與.*同住)|案家住所為.*|個案(?:可自行外出|他人陪同下可外出|外出困難(?:，需大量協助)?|外出須使用爬梯機)|評估.*|家屬主述有.*)。\s*$/gm,"")
-              .replace(/^\s*[—–-]+\s*$/gm,"")
-              .trim();
-            if($("output").value) $("output").value += "\n";
-          }
-          scheduleAutoRegenerate();
-        });
+        cb.addEventListener("change", regenerateAll);
       });
 
+      // 鎖定
+      renderLockChips();
+      $("lockAll").addEventListener("change", ()=>{ if(!$("lockAll").checked) regenerateAll(); });
+
       $("copyBtn").addEventListener("click", async ()=>{
-        try{
-          await navigator.clipboard.writeText($("output").value);
+        try{ await navigator.clipboard.writeText($("output").value);
           const btn=$("copyBtn"); const old=btn.textContent; btn.textContent="已複製"; setTimeout(()=>btn.textContent=old,1200);
         }catch{ alert("無法複製，請手動選取文字。"); }
       });
       $("clearBtn").addEventListener("click", ()=>{ $("output").value=""; });
 
-      // 初次載入不強制輸出
+      // 初次載入不輸出
     });
   </script>
 </body>
