@@ -483,8 +483,8 @@
 
       bits.push(`意識${state.awareness.value}；`);
       if(state.hearing.size) bits.push(`聽力${chipsToList(state.hearing)}；`);
-      bits.push(`認知功能${state.cognition.value}；`);
-      bits.push(`${state.onTopic.value}切題對談；`);
+      bits.push(`認知功能${state.cognition.value},`);
+      bits.push(`${state.onTopic.value}切題對談。`);
 
       if(state.noDisease){
         bits.push("無疾病史；");
