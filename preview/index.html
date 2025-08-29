@@ -91,7 +91,7 @@
               </div>
             </div>
 
-            <!-- 新增：皮膚與壓瘡 -->
+            <!-- 皮膚與壓瘡 -->
             <div class="row">
               <label class="block">皮膚完整性（複選）</label>
               <div id="skinIntegrity" class="chips"></div>
@@ -127,7 +127,7 @@
             <div class="row"><label class="block">同住成員（複選）</label><div id="cohab" class="chips"></div></div>
             <div class="row"><label class="block">住所類型（複選）</label><div id="housing" class="chips"></div></div>
             <div class="row"><label class="block">外出能力（複選）</label><div id="outdoor" class="chips"></div>
-              <div class="hint">對照：獨立→可自行外出；部份協助→他人陪同下可外出；困難→外出困難；爬梯機→外出須使用爬梯機。</div>
+              <div class="hint">對照：獨立→可自行外出；部份協助→他人陪同下可外出；困難→外出困難，需大量協助；爬梯機→外出須使用爬梯機。</div>
             </div>
             <div class="row"><label class="block">照顧支持（複選）</label><div id="support" class="chips"></div>
               <div class="hint">對照：極佳→家庭關係緊密，高度支持；尚佳→照顧支持系統尚佳；薄弱→支持系統薄弱。</div>
@@ -314,12 +314,19 @@
       if(state.useAid && state.aids.size) bits.push("行動需使用" + chipsToList(state.aids));
       if(state.adl.size) bits.push("日常生活自理" + chipsToList(state.adl));
 
-      // 第二小段
+      // 第二小段（同住/住所/外出/支持/主述）
       const more = [];
+
+      // 同住：若同時勾到「獨居」與其它成員，以「與成員同住」為準
       if(state.cohab.size){
-        if(state.cohab.has("獨居")) more.push("個案獨居");
-        else more.push("個案與" + chipsToList(state.cohab) + "同住");
+        const others = Array.from(state.cohab).filter(v => v !== "獨居");
+        if(others.length){
+          more.push("個案與" + others.join("、") + "同住");
+        }else if(state.cohab.has("獨居")){
+          more.push("個案獨居");
+        }
       }
+
       if(state.housing.size) more.push("案家住所為" + chipsToList(state.housing));
       if(state.outdoor.size){
         const texts = Array.from(state.outdoor).map(v=> OUTDOOR_MAP[v] || v);
@@ -331,13 +338,13 @@
       }
       if(state.demands.size) more.push("家屬主述有" + chipsToList(state.demands) + "需求");
 
-      // 若完全沒有任何輸入，不輸出第1段（避免一開頁就出現預設段落）
+      // 若完全沒有任何輸入，不輸出第1段
       const hasAny =
         (state.visitDate && state.visitDate.trim()!=="") ||
         state.parties.size>1 || bits.length>0 || more.length>0;
       if(!hasAny) return "";
 
-      const firstSentence = "於" + rocDate + "訪視" + parties + (bits.length? "，" + bits.join("；") : "") + "。";
+      const firstSentence  = "於" + rocDate + "訪視" + parties + (bits.length? "，" + bits.join("；") : "") + "。";
       const secondSentence = more.length? "\n" + more.join("；") + "。" : "";
       return "【第1段：訪視摘要】\n" + firstSentence + secondSentence + "\n";
     }
@@ -371,7 +378,6 @@
       return "【第5段：風險與衛教】\n" + parts.join("；") + "。\n";
     }
     function genSection6(){
-      // 第6段保留：即使只有日期仍輸出；若想改成空不輸出，把下行條件化即可
       const dateStr = state.nextDate? toROC(state.nextDate) : "____/__/__";
       const parts = ["下次追蹤：" + dateStr];
       if(state.followType.size) parts.push("方式：" + chipsToList(state.followType));
@@ -399,7 +405,9 @@
         }
       });
 
-      // 清掉舊版殘留的整行破折號
+      // 清掉舊版殘留的「第二小段」散落行（避免把【第1段】往下擠）
+      text = text.replace(/^(個案(?:獨居|與.*同住)|案家住所為.*|個案(?:可自行外出|他人陪同下可外出|外出困難(?:，需大量協助)?|外出須使用爬梯機)|評估.*|家屬主述有.*)。\s*$/gm, "");
+      // 清掉孤立破折號
       text = text.replace(/^\s*[—–-]+\s*$/gm, "");
 
       // 忽略空字串段落
@@ -497,7 +505,11 @@
           const n = parseInt(cb.id.replace("sec",""),10);
           if(!cb.checked){
             const re = new RegExp("^【第"+n+"段：[\\s\\S]*?(?=^【第\\d+段：|\\s*$)","gm");
-            $("output").value = $("output").value.replace(re,"").replace(/^\s*[—–-]+\s*$/gm,"").trim();
+            $("output").value = $("output").value
+              .replace(re,"")
+              .replace(/^(個案(?:獨居|與.*同住)|案家住所為.*|個案(?:可自行外出|他人陪同下可外出|外出困難(?:，需大量協助)?|外出須使用爬梯機)|評估.*|家屬主述有.*)。\s*$/gm,"")
+              .replace(/^\s*[—–-]+\s*$/gm,"")
+              .trim();
             if($("output").value) $("output").value += "\n";
           }
           scheduleAutoRegenerate();
@@ -512,8 +524,7 @@
       });
       $("clearBtn").addEventListener("click", ()=>{ $("output").value=""; });
 
-      // 初次載入不強制輸出（避免一開頁就有預設段落）
-      // 使用者勾選或輸入時才觸發 scheduleAutoRegenerate()
+      // 初次載入不強制輸出
     });
   </script>
 </body>
