@@ -28,14 +28,12 @@
     .section-list label { display:flex; align-items:center; gap:8px; margin:6px 0; }
     .divider { height:1px; background:var(--line); margin:12px 0; }
     details { border:1px solid var(--line); border-radius:12px; padding:10px 12px; background:#fff; }
-    details + details { margin-top:10px; }
     summary { font-weight:600; cursor:pointer; outline:none; }
     .twocol { display:grid; grid-template-columns: 1fr 1fr; gap:10px; }
     @media(max-width:760px){ .twocol{ grid-template-columns:1fr; } }
     textarea#output { min-height: 420px; border-radius:12px; }
     .right-sticky { position: sticky; top: 12px; align-self: start; }
     @media(max-width:980px){ .right-sticky{ top: 8px; } }
-    .hint { margin-top:4px; color:#64748b; font-size:12px; }
     .btn { padding:10px 14px; border-radius:10px; border:1px solid var(--ink); background:var(--ink); color:#fff; cursor:pointer; }
     .btn.secondary { background:#f1f5f9; color:var(--ink); border-color:#cbd5e1; }
   </style>
@@ -43,7 +41,7 @@
 <body>
   <div class="container">
     <h1>[PREVIEW] 照顧計畫敘述產生器（多段落／可編輯）</h1>
-    <p class="lead">左側勾選或輸入會自動更新右側文字；未勾選的欄位不輸出。第二段以你勾選的問題清單自動組句。</p>
+    <p class="lead">左側變更會自動更新右側文字。你也可以鎖定輸出或鎖定特定段落，保留手改內容。</p>
 
     <div class="grid">
       <!-- 左側 -->
@@ -64,9 +62,10 @@
           <!-- 第1段 -->
           <details open>
             <summary>（第1段）訪視摘要</summary>
+
             <div class="row">
               <label class="block">訪視日期（西元）</label>
-              <input id="visitDate" type="date">
+              <input id="visitDate" type="date" />
               <div class="muted">會自動轉民國格式，例如 2025-08-12 → 114/08/12</div>
             </div>
 
@@ -86,21 +85,13 @@
               </div>
             </div>
 
-            <!-- 皮膚與壓瘡 -->
             <div class="row"><label class="block">皮膚完整性（複選）</label><div id="skinIntegrity" class="chips"></div></div>
             <div class="row">
               <label class="block">壓瘡</label>
               <div class="chips"><label class="chip"><input id="hasBedsore" type="checkbox">有壓瘡</label></div>
               <div id="bedsoreBlock" style="display:none; margin-top:6px;">
-                <div class="row" style="margin:8px 0;">
-                  <label class="block">壓瘡部位（複選）</label>
-                  <div id="bedsoreSites" class="chips"></div>
-                </div>
-                <div class="row">
-                  <label class="block">壓瘡面積</label>
-                  <input id="bedsoreArea" type="text" placeholder="例：3x2；或 5">
-                  <div class="hint">輸出格式：壓瘡面積約 {值} 公分（僅在勾「有壓瘡」時顯示）。</div>
-                </div>
+                <div class="row"><label class="block">壓瘡部位（複選）</label><div id="bedsoreSites" class="chips"></div></div>
+                <div class="row"><label class="block">壓瘡面積</label><input id="bedsoreArea" type="text" placeholder="例：3x2；或 5"></div>
               </div>
             </div>
 
@@ -114,16 +105,14 @@
 
             <div class="row"><label class="block">日常生活自理程度（複選）</label><div id="adl" class="chips"></div></div>
 
-            <!-- 第1段第二小段 -->
             <div class="divider"></div>
+            <!-- 第1段 第二小段 -->
             <div class="row"><label class="block">同住成員（複選）</label><div id="cohab" class="chips"></div></div>
             <div class="row"><label class="block">住所類型（複選）</label><div id="housing" class="chips"></div></div>
             <div class="row"><label class="block">外出能力（複選）</label><div id="outdoor" class="chips"></div>
-              <div class="hint">對照：獨立→可自行外出；部份協助→他人陪同下可外出；困難→外出困難，需大量協助；爬梯機→外出須使用爬梯機。</div>
+              <div class="muted">對照：獨立→可自行外出；部份協助→他人陪同下可外出；困難→外出困難，需大量協助；爬梯機→外出須使用爬梯機。</div>
             </div>
-            <div class="row"><label class="block">照顧支持（複選）</label><div id="support" class="chips"></div>
-              <div class="hint">對照：極佳→家庭關係緊密，高度支持；尚佳→照顧支持系統尚佳；薄弱→支持系統薄弱。</div>
-            </div>
+            <div class="row"><label class="block">照顧支持（複選）</label><div id="support" class="chips"></div></div>
             <div class="row"><label class="block">主述需求（複選）</label><div id="demands" class="chips"></div></div>
           </details>
 
@@ -160,7 +149,7 @@
           </details>
 
           <div class="divider"></div>
-          <div class="muted">※ 勾選的段落才會輸出到右側；左側任何變更都會整頁重算。你也可以鎖定輸出或鎖定特定段落保留手改文字。</div>
+          <div class="muted">※ 勾選的段落才會輸出到右側；你可鎖定輸出或鎖定特定段落保留手動修改。</div>
         </div>
       </div>
 
@@ -177,7 +166,7 @@
         <div class="body">
           <div class="sectitle">鎖定段落（可複選）</div>
           <div id="lockList" class="chips" style="margin-bottom:8px;"></div>
-          <textarea id="output" placeholder="左側變更會自動更新到這裡；你也可以在此手動微調。若開啟『鎖定輸出』或勾選『鎖定段落』，右側文字不會被覆蓋。"></textarea>
+          <textarea id="output" placeholder="左側變更會自動更新到這裡；若開啟『鎖定輸出』或勾選『鎖定段落』，右側文字不會被覆蓋。"></textarea>
           <div class="muted">鎖定段落時，即使取消左側段落勾選也不會移除；解鎖後再以左側為準。</div>
         </div>
       </div>
@@ -185,14 +174,14 @@
   </div>
 
   <script>
-    /* ===== 選項常數 ===== */
+    /* ===== 常數 ===== */
     const VISIT_PARTIES = ["個案","案長女","案次女","配偶","主要照顧者"];
     const AWARENESS = ["清楚","模糊"];
     const HEARING   = ["正常","右耳重聽","左耳重聽","雙耳重聽"];
     const COGNITION = ["正常","欠佳"];
     const ON_TOPIC  = ["能夠","無法"];
     const DISEASES  = ["高血壓","糖尿病","中風","心臟病","腎臟病"];
-    const HOSPITALS = ["汐止國泰","內湖三總","忠孝醫院"]; // 複選
+    const HOSPITALS = ["汐止國泰","內湖三總","忠孝醫院"];
     const SKIN_INTEGRITY = ["粗糙乾裂","有傷口"];
     const BEDSORE_SITES  = ["骶尾部","足跟","髖部"];
     const GAIT      = ["穩健","不穩"];
@@ -217,7 +206,7 @@
     };
     const DEMANDS = ["居家服務","日間照顧","交通接送","專業復能","喘息服務","輔具","無障礙環境改善"];
 
-    // 第2段 問題評估
+    // 第2段
     const ISSUES = ["進食問題","洗澡問題","個人修飾問題","穿脫衣物問題","大小便控制問題","上廁所問題","走路問題","上下樓梯問題","購物或外出問題","跌倒風險","移位問題","使用電話問題","備餐問題","處理家務問題","用藥問題","處理財務問題","溝通問題","吞嚥問題","安全疑慮","照顧負荷過重","居住環境障礙","疼痛問題","皮膚照護問題"];
 
     // 其他段落
@@ -237,7 +226,7 @@
       return `${y}/${m}/${day}`;
     }
     function renderChips(containerId, list, stateSet){
-      const box = $(containerId); if(!box) return; box.innerHTML="";
+      const box = $(containerId); box.innerHTML="";
       list.forEach(txt=>{
         const label=document.createElement("label"); label.className="chip";
         const input=document.createElement("input"); input.type="checkbox"; input.checked=stateSet.has(txt);
@@ -245,17 +234,14 @@
         label.appendChild(input); label.appendChild(document.createTextNode(txt)); box.appendChild(label);
       });
     }
-    function chipsToList(set){ return set.size? Array.from(set).join("、") : ""; }
+    const chipsToList = set => set.size ? Array.from(set).join("、") : "";
 
-    // 解析右側文字 → 分段 map
+    // 把右側文字拆回各段（僅用於鎖定時保留手改內容）
     function parseBlocks(text){
       const map = {};
       const re = /^【第(\d+)段：[^\n】]+】[\s\S]*?(?=^【第\d+段：|$)/gm;
       let m;
-      while((m = re.exec(text)) !== null){
-        const idx = parseInt(m[1],10);
-        map[idx] = m[0].trimEnd();
-      }
+      while((m=re.exec(text))){ map[parseInt(m[1],10)] = m[0].trimEnd(); }
       return map;
     }
 
@@ -280,31 +266,35 @@
       nextDate:"", followType:new Set(), followOwner:"", followNote:"",
 
       // 鎖定
-      locked:new Set(), // set of numbers 1..6
+      locked:new Set(), // e.g., {1,2}
     };
 
     /* ===== 段落產生器 ===== */
     function genSection1(){
-      const hasFirstHalf =
-        state.visitDate || state.parties.size>1 || state.awareness.size || state.hearing.size ||
-        state.cognition.size || state.onTopic.size || state.noDisease || state.diseases.size ||
-        state.skin.size || state.hasBedsore || state.gait.size || (state.useAid && state.aids.size) || state.adl.size;
+      // 第一小段是否有任何實質內容
+      const hasFirst =
+        !!state.visitDate ||
+        state.parties.size>1 ||
+        state.awareness.size || state.hearing.size || state.cognition.size ||
+        state.onTopic.size || state.noDisease || state.diseases.size ||
+        state.skin.size || state.hasBedsore || state.gait.size ||
+        (state.useAid && state.aids.size) || state.adl.size;
 
-      const hasSecondHalf =
-        state.cohab.size || state.housing.size || state.outdoor.size || state.support.size || state.demands.size;
+      const hasSecond =
+        state.cohab.size || state.housing.size || state.outdoor.size ||
+        state.support.size || state.demands.size;
 
-      if(!hasFirstHalf && !hasSecondHalf) return "";
+      if(!hasFirst && !hasSecond) return "";
 
+      /* 第一小段 */
       const rocDate = toROC(state.visitDate);
-      const parties = state.parties.size? Array.from(state.parties).join("、") : "個案";
-
+      const parties = state.parties.size ? Array.from(state.parties).join("、") : "個案";
       const bits = [];
       if(state.awareness.size) bits.push("意識" + chipsToList(state.awareness));
       if(state.hearing.size)   bits.push("聽力" + chipsToList(state.hearing));
       if(state.cognition.size) bits.push("認知功能" + chipsToList(state.cognition));
       if(state.onTopic.size){
-        const talk = Array.from(state.onTopic).map(v=> v + "切題對談").join("、");
-        bits.push(talk);
+        bits.push(Array.from(state.onTopic).map(v=> v + "切題對談").join("、"));
       }
       if(state.noDisease){
         bits.push("無疾病史");
@@ -315,81 +305,79 @@
       }
       if(state.skin.size) bits.push("個案皮膚" + chipsToList(state.skin));
       if(state.hasBedsore){
-        bits.push("有壓瘡");
-        if(state.bedsoreSites.size) bits.push("壓瘡部位" + chipsToList(state.bedsoreSites));
-        const area = (state.bedsoreArea||"").trim(); if(area) bits.push("壓瘡面積約 " + area + " 公分");
+        const arr = [];
+        arr.push("有壓瘡");
+        if(state.bedsoreSites.size) arr.push("部位" + chipsToList(state.bedsoreSites));
+        const area = (state.bedsoreArea||"").trim(); if(area) arr.push("面積約 " + area + " 公分");
+        bits.push(arr.join("、"));
       }
       if(state.gait.size) bits.push("步態" + chipsToList(state.gait));
       if(state.useAid && state.aids.size) bits.push("行動需使用" + chipsToList(state.aids));
       if(state.adl.size) bits.push("日常生活自理" + chipsToList(state.adl));
 
-      const firstSentence  = "於" + rocDate + "訪視" + parties + (bits.length? "，" + bits.join("；") : "") + "。";
+      const first = "於" + rocDate + "訪視" + parties + (bits.length? "，" + bits.join("；") : "") + "。";
 
-      // 第二小段（同住/住所/外出/支持/需求）
+      /* 第二小段（一定接在第一小段之後，並空一行） */
       const more = [];
       if(state.cohab.size){
-        const others = Array.from(state.cohab).filter(v => v !== "獨居");
-        if(others.length){ more.push("個案與" + others.join("、") + "同住"); }
-        else if(state.cohab.has("獨居")){ more.push("個案獨居"); }
+        const hasAlone = state.cohab.has("獨居");
+        const others = Array.from(state.cohab).filter(v=>v!=="獨居");
+        if(hasAlone && others.length===0){
+          more.push("個案獨居");
+        }else if(others.length){
+          more.push("個案與" + others.join("、") + "同住");
+        }
       }
-      if(state.housing.size) more.push("案家住所為" + chipsToList(state.housing));
+      if(state.housing.size) more.push("住所類型：" + chipsToList(state.housing));
       if(state.outdoor.size){
-        const texts = Array.from(state.outdoor).map(v=> OUTDOOR_MAP[v] || v);
-        more.push("個案" + texts.join("、"));
+        const desc = Array.from(state.outdoor).map(v=> OUTDOOR_MAP[v] || v);
+        more.push(desc.join("、"));
       }
       if(state.support.size){
-        const texts = Array.from(state.support).map(v=> SUPPORT_MAP[v] || v);
-        more.push("評估" + texts.join("、"));
+        const desc = Array.from(state.support).map(v=> SUPPORT_MAP[v] || v);
+        more.push("照顧支持" + desc.join("、"));
       }
-      if(state.demands.size) more.push("家屬主述有" + chipsToList(state.demands) + "需求");
+      if(state.demands.size) more.push("家屬主述需求：" + chipsToList(state.demands));
 
-      const secondSentence = more.length? "\n\n" + more.join("；") + "。" : "";
+      const second = more.length ? ("\n\n" + more.join("；") + "。") : "";
 
-      return "【第1段：訪視摘要】\n" + firstSentence + secondSentence + "\n";
+      return "【第1段：訪視摘要】\n" + first + second + "\n";
     }
 
     function genSection2(){
-      const list = chipsToList(state.issues);
-      const note = (state.needsNote||"").trim();
-      const parts = [];
-      if(list) parts.push("主要需求/問題評估：" + list);
-      if(note) parts.push("補充：" + note);
-      if(!parts.length) return "";
-      return "【第2段：需求與問題評估】\n" + parts.join("；") + "。\n";
+      const list=chipsToList(state.issues), note=(state.needsNote||"").trim();
+      const arr=[]; if(list) arr.push("主要需求/問題評估：" + list); if(note) arr.push("補充：" + note);
+      if(!arr.length) return "";
+      return "【第2段：需求與問題評估】\n" + arr.join("；") + "。\n";
     }
-
     function genSection3(){
-      const list = chipsToList(state.goals), note=(state.goalsNote||"").trim();
-      const parts=[]; if(list) parts.push("照護目標：" + list); if(note) parts.push("量化/補充：" + note);
-      if(!parts.length) return "";
-      return "【第3段：照護目標】\n" + parts.join("；") + "。\n";
+      const list=chipsToList(state.goals), note=(state.goalsNote||"").trim();
+      const arr=[]; if(list) arr.push("照護目標：" + list); if(note) arr.push("量化/補充：" + note);
+      if(!arr.length) return ""; return "【第3段：照護目標】\n" + arr.join("；") + "。\n";
     }
     function genSection4(){
       const list=chipsToList(state.services), sched=(state.serviceSched||"").trim(), note=(state.servicesNote||"").trim();
-      const parts=[]; if(list) parts.push("服務計畫：" + list); if(sched) parts.push("時程/頻率：" + sched); if(note) parts.push("補充：" + note);
-      if(!parts.length) return "";
-      return "【第4段：服務計畫】\n" + parts.join("；") + "。\n";
+      const arr=[]; if(list) arr.push("服務計畫：" + list); if(sched) arr.push("時程/頻率：" + sched); if(note) arr.push("補充：" + note);
+      if(!arr.length) return ""; return "【第4段：服務計畫】\n" + arr.join("；") + "。\n";
     }
     function genSection5(){
       const list=chipsToList(state.education), note=(state.educationNote||"").trim();
-      const parts=[]; if(list) parts.push("風險與衛教：" + list); if(note) parts.push("重點：" + note);
-      if(!parts.length) return "";
-      return "【第5段：風險與衛教】\n" + parts.join("；") + "。\n";
+      const arr=[]; if(list) arr.push("風險與衛教：" + list); if(note) arr.push("重點：" + note);
+      if(!arr.length) return ""; return "【第5段：風險與衛教】\n" + arr.join("；") + "。\n";
     }
     function genSection6(){
       const dateStr = state.nextDate? toROC(state.nextDate) : "____/__/__";
-      const parts = ["下次追蹤：" + dateStr];
-      if(state.followType.size) parts.push("方式：" + chipsToList(state.followType));
-      const who=(state.followOwner||"").trim(); if(who) parts.push("負責：" + who);
-      const note=(state.followNote||"").trim(); if(note) parts.push("備註：" + note);
-      return "【第6段：追蹤與回訪】\n" + parts.join("，") + "。\n";
+      const arr=["下次追蹤：" + dateStr];
+      if(state.followType.size) arr.push("方式：" + chipsToList(state.followType));
+      const who=(state.followOwner||"").trim(); if(who) arr.push("負責：" + who);
+      const note=(state.followNote||"").trim(); if(note) arr.push("備註：" + note);
+      return "【第6段：追蹤與回訪】\n" + arr.join("，") + "。\n";
     }
-
-    const generators = {1:genSection1,2:genSection2,3:genSection3,4:genSection4,5:genSection5,6:genSection6};
+    const generators={1:genSection1,2:genSection2,3:genSection3,4:genSection4,5:genSection5,6:genSection6};
 
     /* ===== 鎖定段落 UI ===== */
     function renderLockChips(){
-      const box = $("lockList"); box.innerHTML="";
+      const box=$("lockList"); box.innerHTML="";
       for(let i=1;i<=6;i++){
         const label=document.createElement("label"); label.className="chip";
         const input=document.createElement("input"); input.type="checkbox"; input.checked=state.locked.has(i);
@@ -399,34 +387,27 @@
       }
     }
 
-    /* ===== 整頁重算（尊重鎖定） ===== */
-    function selectedSections(){ const a=[]; for(let i=1;i<=6;i++){ const el=$("sec"+i); if(el && el.checked) a.push(i); } return a; }
+    /* ===== 重算並覆蓋（尊重鎖定） ===== */
+    function selectedSections(){ const a=[]; for(let i=1;i<=6;i++){ const el=$("sec"+i); if(el && el.checked) a.push(i);} return a; }
 
     function regenerateAll(){
-      // 全鎖定：完全不覆蓋
-      if($("lockAll").checked) return;
+      if($("lockAll").checked) return;            // 整欄鎖定：完全不覆蓋
 
-      // 新產生的各段
-      const fresh = {};
+      const fresh = {};                            // 先產生所有段落的新文本
       for(let i=1;i<=6;i++){ fresh[i]=generators[i](); }
 
-      // 目前右側文字 → 抓現有各段（保留手改）
-      const currentText = $("output").value || "";
-      const existing = parseBlocks(currentText);
-
-      // 選擇哪些段落要輸出（未勾選就不輸出；但若被鎖且現有有內容，仍保留）
+      const existing = parseBlocks($("output").value||""); // 解析出目前右側（保留手改）
       const sel = new Set(selectedSections());
 
       const finalBlocks = [];
       for(let i=1;i<=6;i++){
-        if(state.locked.has(i)){          // 鎖定：優先使用現有，如果現有沒有、且有勾選，才用新產出
+        if(state.locked.has(i)){                   // 段落鎖定：優先用現有，沒有才用新產生（且要有勾選）
           if(existing[i]) finalBlocks.push(existing[i]);
           else if(sel.has(i) && fresh[i]) finalBlocks.push(fresh[i]);
-        }else{                             // 未鎖：完全以左側為準
+        }else{                                     // 未鎖：以左側勾選 + 新產生為準
           if(sel.has(i) && fresh[i]) finalBlocks.push(fresh[i]);
         }
       }
-
       $("output").value = finalBlocks.join("\n").trim() + (finalBlocks.length? "\n" : "");
       $("output").scrollTop = $("output").scrollHeight;
     }
@@ -435,6 +416,7 @@
     window.addEventListener("DOMContentLoaded", ()=>{
       $("visitDate").addEventListener("input", e=>{ state.visitDate=e.target.value; regenerateAll(); });
 
+      // 渲染所有 chips
       renderChips("parties",    VISIT_PARTIES, state.parties);
       renderChips("awareness",  AWARENESS,     state.awareness);
       renderChips("hearing",    HEARING,       state.hearing);
@@ -471,7 +453,7 @@
         if(!state.hasBedsore){ state.bedsoreSites.clear(); state.bedsoreArea=""; $("bedsoreArea").value=""; }
         regenerateAll();
       });
-      $("bedsoreArea").addEventListener("input", e=>{ state.bedsoreArea = e.target.value; regenerateAll(); });
+      $("bedsoreArea").addEventListener("input", e=>{ state.bedsoreArea=e.target.value; regenerateAll(); });
 
       // 無疾病史
       $("noDisease").addEventListener("change", e=>{
@@ -492,8 +474,8 @@
         regenerateAll();
       });
 
-      // 文字欄
-      $("needsNote").addEventListener("input", e=>{ state.needsNote = e.target.value; regenerateAll(); });
+      // 文字欄位
+      $("needsNote").addEventListener("input", e=>{ state.needsNote=e.target.value; regenerateAll(); });
       $("nextDate").addEventListener("input", e=>{ state.nextDate=e.target.value; regenerateAll(); });
       $("followOwner").addEventListener("input", e=>{ state.followOwner=e.target.value; regenerateAll(); });
       $("followNote").addEventListener("input", e=>{ state.followNote=e.target.value; regenerateAll(); });
@@ -503,10 +485,11 @@
         cb.addEventListener("change", regenerateAll);
       });
 
-      // 鎖定
+      // 鎖定輸出 / 鎖定段落
       renderLockChips();
       $("lockAll").addEventListener("change", ()=>{ if(!$("lockAll").checked) regenerateAll(); });
 
+      // 其他按鈕
       $("copyBtn").addEventListener("click", async ()=>{
         try{ await navigator.clipboard.writeText($("output").value);
           const btn=$("copyBtn"); const old=btn.textContent; btn.textContent="已複製"; setTimeout(()=>btn.textContent=old,1200);
@@ -514,7 +497,7 @@
       });
       $("clearBtn").addEventListener("click", ()=>{ $("output").value=""; });
 
-      // 初次載入不輸出
+      // 初次載入不輸出；等你勾選才產生
     });
   </script>
 </body>
