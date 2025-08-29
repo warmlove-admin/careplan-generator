@@ -41,6 +41,8 @@
 
     .btn { padding:10px 14px; border-radius:10px; border:1px solid var(--ink); background:var(--ink); color:#fff; cursor:pointer; }
     .btn.secondary { background:#f1f5f9; color:var(--ink); border-color:#cbd5e1; }
+
+    .muted { color: var(--muted); font-size: 12px; }
   </style>
 </head>
 <body>
@@ -119,6 +121,8 @@
             </div>
             <div class="row"><label class="block">照顧支持（複選）</label><div id="support" class="chips"></div></div>
             <div class="row"><label class="block">主述需求（複選）</label><div id="demands" class="chips"></div></div>
+            <!-- 新增：個管建議（複選） -->
+            <div class="row"><label class="block">個管建議（複選）</label><div id="cmgr" class="chips"></div></div>
           </details>
 
           <!-- 第2段 -->
@@ -241,7 +245,17 @@
       list.forEach(txt=>{
         const label=document.createElement("label"); label.className="chip";
         const input=document.createElement("input"); input.type="checkbox"; input.checked=stateSet.has(txt);
-        input.addEventListener("change",()=>{ if(input.checked) stateSet.add(txt); else stateSet.delete(txt); maybeAuto(1); if(containerId==="issues") maybeAuto(2); if(containerId==="goals") maybeAuto(3); if(containerId==="services") maybeAuto(4); if(containerId==="education") maybeAuto(5); if(containerId==="followType") maybeAuto(6);});
+        input.addEventListener("change",()=>{
+          if(input.checked) stateSet.add(txt); else stateSet.delete(txt);
+          // 第1段永遠需要重算
+          maybeAuto(1);
+          // 其他段落視容器決定
+          if(containerId==="issues")     maybeAuto(2);
+          if(containerId==="goals")      maybeAuto(3);
+          if(containerId==="services")   maybeAuto(4);
+          if(containerId==="education")  maybeAuto(5);
+          if(containerId==="followType") maybeAuto(6);
+        });
         label.appendChild(input); label.appendChild(document.createTextNode(txt)); box.appendChild(label);
       });
     }
@@ -255,7 +269,9 @@
       skin:new Set(), hasBedsore:false, bedsoreSites:new Set(), bedsoreArea:"",
       gait:new Set(), useAid:false, aids:new Set(), adl:new Set(),
 
-      cohab:new Set(), housing:new Set(), outdoor:new Set(), support:new Set(), demands:new Set(),
+      cohab:new Set(), housing:new Set(), outdoor:new Set(), support:new Set(),
+      demands:new Set(),           // 家屬主述需求
+      cmgr:new Set(),              // 個管建議（與 DEMANDS 同一組選項）
 
       issues:new Set(), needsNote:"",
       goals:new Set(), goalsNote:"",
@@ -330,7 +346,18 @@
         const desc = Array.from(state.support).map(v=> SUPPORT_MAP[v]||v).join("、");
         more.push("評估"+desc);
       }
-      if(state.demands.size) more.push("家屬主述需求："+chipsToList(state.demands));
+
+      // 主述需求 + 個管建議（同一片段，逗號銜接）
+      if (state.demands.size || state.cmgr.size) {
+        let t = "";
+        if (state.demands.size) {
+          t += "家屬主述有" + chipsToList(state.demands) + "需求";
+        }
+        if (state.cmgr.size) {
+          t += (state.demands.size ? "，" : "") + "個管建議使用" + chipsToList(state.cmgr) + "服務";
+        }
+        more.push(t);
+      }
 
       const para2 = more.length? ("\n\n"+more.join("；")+"。") : "";
       return [para1, para2].join("");
@@ -343,7 +370,7 @@
     }
     function gen3(){
       const list=chipsToList(state.goals), note=(state.goalsNote||"").trim();
-      const arr=[]; if(list) arr.push("照護目標："+list); if(note) arr.push("量化/補充："+note);
+      const arr=[]; if(list) arr.push("照顧目標："+list); if(note) arr.push("量化/補充："+note);
       return arr.length? arr.join("；")+"。" : "";
     }
     function gen4(){
@@ -397,6 +424,7 @@
       renderChips("outdoor",    OUTDOOR,       state.outdoor);
       renderChips("support",    SUPPORT,       state.support);
       renderChips("demands",    DEMANDS,       state.demands);
+      renderChips("cmgr",       DEMANDS,       state.cmgr);   // 新增：個管建議（同 DEMANDS）
 
       renderChips("issues",     ISSUES,        state.issues);
       renderChips("goals",      GOALS,         state.goals);
@@ -442,8 +470,8 @@
       $("followOwner").addEventListener("input", e=>{ state.followOwner=e.target.value; maybeAuto(6); });
       $("followNote").addEventListener("input", e=>{ state.followNote=e.target.value; maybeAuto(6); });
 
-      // 段落勾選
-      document.querySelectorAll(".section-list input[type=checkbox]").forEach(cb=> cb.addEventListener("change", ()=>{ /* 只是影響複製範圍 */ }));
+      // 段落勾選（影響複製範圍）
+      document.querySelectorAll(".section-list input[type=checkbox]").forEach(cb=> cb.addEventListener("change", ()=>{}));
 
       // 複製全部
       $("copyBtn").addEventListener("click", async ()=>{
@@ -452,7 +480,10 @@
           const body=(sections[n]||"").trim();
           return body? `【第${n}段：${NAMES[n]}】\n${body}` : "";
         }).filter(Boolean).join("\n\n");
-        try{ await navigator.clipboard.writeText(out||""); const b=$("copyBtn"),t=b.textContent;b.textContent="已複製";setTimeout(()=>b.textContent=t,1200);}catch{ alert("無法複製，請手動選取文字。"); }
+        try{
+          await navigator.clipboard.writeText(out||"");
+          const b=$("copyBtn"),t=b.textContent;b.textContent="已複製";setTimeout(()=>b.textContent=t,1200);
+        }catch{ alert("無法複製，請手動選取文字。"); }
       });
 
       // 先跑一輪自動產生，然後切到第一段
