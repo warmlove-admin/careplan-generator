@@ -212,7 +212,7 @@
     };
     const SUPPORT = ["極佳","尚佳","薄弱"];
     const SUPPORT_MAP = {
-      "極佳":"家庭關係緊密，高度支持",
+      "極佳":"家庭關係緊密，支持度高",
       "尚佳":"照顧支持系統尚佳",
       "薄弱":"支持系統薄弱"
     };
@@ -328,7 +328,7 @@
       }
       if(state.support.size){
         const desc = Array.from(state.support).map(v=> SUPPORT_MAP[v]||v).join("、");
-        more.push("照顧支持"+desc);
+        more.push("評估"+desc);
       }
       if(state.demands.size) more.push("家屬主述需求："+chipsToList(state.demands));
 
